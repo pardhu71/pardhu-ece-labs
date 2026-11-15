@@ -212,6 +212,7 @@
           </div>
           <div class="mt-5"><label for="req-title" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Project Title / Idea *</label><input id="req-title" type="text" required placeholder="Enter your own project title" class="inp-c" /></div>
           <div class="mt-5"><label for="req-details" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Requirements / Abstract / IEEE Drive Link *</label><textarea id="req-details" rows="4" required placeholder="Describe sensors/software needed or paste a Drive link..." class="inp-c"></textarea></div>
+          <p class="mt-4 rounded-lg border border-[#DFD8CC] bg-white p-3 text-xs leading-relaxed text-[#57534E]">Your project details are kept in this browser session and will also be included in the admin email if you complete a paid checkout in the same session.</p>
           <div class="mt-6 grid gap-3 sm:grid-cols-2">
             <button type="button" onclick="sendCustomProject('whatsapp')" class="btn-d px-5 py-3.5 text-xs">Send via WhatsApp</button>
             <button type="button" onclick="sendCustomProject('email')" class="btn-l px-5 py-3.5 text-xs">Send via Email</button>
@@ -540,12 +541,15 @@
     function showCheckoutStep(id){document.querySelectorAll(".checkout-step").forEach(e=>{e.classList.add("hidden");e.style.display="none";});const el=document.getElementById(id);if(el){el.classList.remove("hidden");el.style.display="block";}}
 
     /* Create a server-side Razorpay Order and launch Standard Checkout. */
+    function getSavedCustomProject(){
+      try{const p=JSON.parse(sessionStorage.getItem("pel_custom_project")||"null");if(!p||!p.title||!p.details)return null;return {domain:String(p.domain||"").slice(0,100),format:String(p.format||"").slice(0,100),title:String(p.title||"").slice(0,180),details:String(p.details||"").slice(0,5000)};}catch(_){return null;}
+    }
     async function proceedToPayment(e){
       e.preventDefault();const lines=cartLines();if(!lines.length)return;
       const customer={name:document.getElementById("pay-name").value.trim(),phone:document.getElementById("pay-phone").value.trim(),email:document.getElementById("pay-email").value.trim()};
       const submit=e.submitter;if(submit){submit.disabled=true;submit.textContent="Preparing secure checkout…";}
       try{
-        const r=await fetch(`${API_BASE_URL}/api/create-order`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty}))})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create Razorpay order.");
+        const r=await fetch(`${API_BASE_URL}/api/create-order`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty})),customProject:getSavedCustomProject()})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create Razorpay order.");
         currentOrder={ref:d.ref,orderId:d.order_id,total:d.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email};finished=false;
         document.getElementById("upi-amount-label").textContent=money(currentOrder.total);document.getElementById("qr-status").textContent="Razorpay Checkout is ready. Complete payment to verify your order.";showCheckoutStep("checkout-step-2");
         const options={key:d.key_id,amount:d.amount,currency:"INR",name:"Pardhu ECE Labs",description:`Order ${d.ref}`,order_id:d.order_id,prefill:{name:d.name,email:d.email,contact:d.contact},theme:{color:"#1A1A1A"},handler:async function(resp){await verifyCheckoutPayment(resp);},modal:{ondismiss:function(){document.getElementById("qr-status").textContent="Checkout closed. If you completed payment, use Check payment status.";}}};
@@ -565,7 +569,7 @@
     function finishPayment(status,reason="",paymentId="",emailStatus=null){if(finished||!currentOrder)return;finished=true;stopWatch();const o=currentOrder,ok=status==="paid";const icon=document.getElementById("result-icon");icon.textContent=ok?"✓":"✕";icon.style.background=ok?"#15803D":"#DC2626";document.getElementById("result-title").textContent=ok?"Payment Successful":"Payment Not Completed";
       let msg=ok?`${money(o.total)} payment verified by Razorpay. Order reference: ${o.ref}. `:"Payment was not confirmed. "+(reason||"Please check your payment status before trying again.");
       if(ok){msg+=`We have received your requirements. Our team will review your order and contact you soon. Order reference: ${o.ref}.`; }
-      document.getElementById("result-msg").textContent=msg;document.getElementById("checkout-close").style.display="none";showCheckoutStep("checkout-step-result");if(ok){cart=[];saveCart();}
+      document.getElementById("result-msg").textContent=msg;document.getElementById("checkout-close").style.display="none";showCheckoutStep("checkout-step-result");if(ok){cart=[];saveCart();try{sessionStorage.removeItem("pel_custom_project");}catch(_){}}
       returnTimer=setTimeout(()=>{document.getElementById("checkout-close").style.display="";closeCheckoutModal();switchPage("home");showOrderBanner(status);currentOrder=null;},RETURN_DELAY_MS);
     }
 
@@ -592,6 +596,7 @@
         title:document.getElementById("req-title").value.trim(),
         details:document.getElementById("req-details").value.trim()
       };
+      try{sessionStorage.setItem("pel_custom_project",JSON.stringify({domain:data.domain,format:data.format,title:data.title,details:data.details}));}catch(_){}
       const msg=`Hi Pardhu, I want to submit my own custom ECE project:\n\nName: ${data.name}\nPhone: ${data.phone}\nDomain: ${data.domain}\nFormat: ${data.format}\nProject Title: ${data.title}\nDetails: ${data.details}`;
       if(ch==="whatsapp"){
         window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank","noopener");

@@ -516,13 +516,13 @@
       cart.push({id,qty:1});
       saveCart();showToast("Added to cart!");
     }
-    function updateQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;if(d<0)cart=cart.filter(c=>c.id!==id);saveCart();}
+    function updateQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;const next=i.qty+d;if(next<=0){cart=cart.filter(c=>c.id!==id);}else if(next<=10){i.qty=next;}else{showToast("Maximum 10 units per product");}saveCart();}
     function saveCart(){try{localStorage.setItem("pardhu_ece_cart",JSON.stringify(cart));}catch(e){}updateCartUI();}
     function updateCartUI(){
       const cnt=document.getElementById("cart-count"),items=document.getElementById("cart-items"),tot=document.getElementById("cart-total"),btn=document.getElementById("checkout-btn");
       const lines=cartLines();
       cnt.textContent=lines.reduce((s,i)=>s+i.qty,0);tot.textContent=money(cartTotal());btn.disabled=!lines.length;
-      items.innerHTML=lines.length?lines.map(i=>`<div class="card-c p-4"><div class="flex items-start justify-between gap-3"><div><span class="font-mono-tech text-[10px] font-bold uppercase text-[#66635E]">${i.domainLabel}</span><h4 class="mt-0.5 text-sm font-bold">${i.title}</h4></div><span class="font-mono-tech text-sm font-bold">${money(i.price*i.qty)}</span></div><div class="mt-3 flex items-center justify-between"><span class="text-xs text-[#66635E]">${money(i.price)} each</span><div class="flex items-center gap-2"><button type="button" onclick="updateQty('${i.id}',-1)" aria-label="Decrease quantity" class="btn-l h-7 w-7 text-sm">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span><span class="w-7"></span></div></div></div>`).join(""):`<div class="py-12 text-center text-sm text-[#66635E]">Your cart is empty. Browse Projects, Project Kits, or send your own idea.</div>`;
+      items.innerHTML=lines.length?lines.map(i=>`<div class="card-c p-4"><div class="flex items-start justify-between gap-3"><div><span class="font-mono-tech text-[10px] font-bold uppercase text-[#66635E]">${i.domainLabel}</span><h4 class="mt-0.5 text-sm font-bold">${i.title}</h4></div><span class="font-mono-tech text-sm font-bold">${money(i.price*i.qty)}</span></div><div class="mt-3 flex items-center justify-between"><span class="text-xs text-[#66635E]">${money(i.price)} each</span><div class="flex items-center gap-2"><button type="button" onclick="updateQty('${i.id}',-1)" aria-label="Decrease quantity" class="btn-l h-8 w-8 text-sm">−</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span><button type="button" onclick="updateQty('${i.id}',1)" aria-label="Increase quantity" class="btn-l h-8 w-8 text-sm font-bold">+</button></div></div></div>`).join(""):`<div class="py-12 text-center text-sm text-[#66635E]">Your cart is empty. Browse Projects, Project Kits, or send your own idea.</div>`;
     }
     function toggleCart(open){const d=document.getElementById("cart-drawer");d.classList.toggle("hidden",!open);d.style.display=open?"block":"none";}
 
@@ -549,14 +549,14 @@
         currentOrder={ref:d.ref,orderId:d.order_id,total:d.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email};finished=false;
         document.getElementById("upi-amount-label").textContent=money(currentOrder.total);document.getElementById("qr-status").textContent="Razorpay Checkout is ready. Complete payment to verify your order.";showCheckoutStep("checkout-step-2");
         const options={key:d.key_id,amount:d.amount,currency:"INR",name:"Pardhu ECE Labs",description:`Order ${d.ref}`,order_id:d.order_id,prefill:{name:d.name,email:d.email,contact:d.contact},theme:{color:"#1A1A1A"},handler:async function(resp){await verifyCheckoutPayment(resp);},modal:{ondismiss:function(){document.getElementById("qr-status").textContent="Checkout closed. If you completed payment, use Check payment status.";}}};
-        const checkout=new Razorpay(options);checkout.on("payment.failed",function(resp){document.getElementById("qr-status").textContent=resp.error?.description||"Payment failed. You can retry checkout.";});checkout.open();
+        const checkout=new Razorpay(options);checkout.on("payment.failed",function(resp){const status=document.getElementById("qr-status");status.textContent="Payment failed: "+(resp.error?.description||"Razorpay could not complete this payment.")+" Please try again with another UPI app or payment method. If money was debited, do not pay again until your bank/Razorpay status is checked.";status.style.color="#B91C1C";status.style.fontWeight="700";showToast("Payment failed. Please try again.");});checkout.open();
         startStatusWatch();
       }catch(err){showToast(err.message||"Payment setup failed. Please try again.");}
       finally{if(submit){submit.disabled=false;submit.textContent="Continue to Secure Payment";}}
     }
     async function verifyCheckoutPayment(resp){
       if(!currentOrder||finished)return;document.getElementById("qr-status").textContent="Verifying payment securely with Razorpay…";
-      try{const r=await fetch(`${API_BASE_URL}/api/verify-payment`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:currentOrder.ref,...resp})});const d=await r.json();if(d.status==="paid"){finishPayment("paid","",d.payment_id,d.email_status);}else{document.getElementById("qr-status").textContent=d.message||d.error||"Payment is not captured yet. Checking again…";}}
+      try{const r=await fetch(`${API_BASE_URL}/api/verify-payment`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:currentOrder.ref,...resp})});const d=await r.json();if(d.status==="paid"){finishPayment("paid","",d.payment_id,d.email_status);}else{const status=document.getElementById("qr-status");status.textContent=d.message||d.error||"Payment is not captured yet. Checking again…";status.style.color="#B91C1C";}}
       catch(_){document.getElementById("qr-status").textContent="Payment submitted. Waiting for server confirmation…";}
     }
     function startStatusWatch(){stopWatch();const ref=currentOrder.ref;const poll=async()=>{if(finished||!currentOrder)return;try{const r=await fetch(`${API_BASE_URL}/api/status?ref=${encodeURIComponent(ref)}`,{cache:"no-store"});const d=await r.json();if(d.status==="paid")finishPayment("paid","",d.payment_id,d.email_status);else document.getElementById("qr-status").textContent="Waiting for Razorpay to confirm captured payment…";}catch(_){}};pollTimer=setInterval(poll,POLL_MS);poll();}

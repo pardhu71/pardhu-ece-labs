@@ -283,25 +283,23 @@
 
       <!-- Step 1: customer details -->
       <div id="checkout-step-1" class="checkout-step">
-        <h3 class="font-editorial text-3xl font-bold">Checkout</h3><p class="mt-1 text-xs text-[#66635E]">Enter your details. Razorpay will send a UPI payment link by SMS. Your order is confirmed only after payment verification.</p>
+        <h3 class="font-editorial text-3xl font-bold">Checkout</h3><p class="mt-1 text-xs text-[#66635E]">Enter your details. Razorpay Checkout will offer available payment methods, including UPI QR on desktop. Your order is confirmed only after server-side payment verification.</p>
         <form onsubmit="proceedToPayment(event)" class="mt-6 space-y-4">
           <div><label for="pay-name" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Student Full Name *</label><input id="pay-name" type="text" required placeholder="Your full name" class="inp-c" /></div>
           <div class="grid gap-3 sm:grid-cols-2"><div><label for="pay-phone" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Mobile / WhatsApp *</label><input id="pay-phone" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" placeholder="10-digit number" class="inp-c" /></div><div><label for="pay-email" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Email *</label><input id="pay-email" type="email" required placeholder="student@example.com" class="inp-c" /></div></div>
           <div class="card-c p-4"><div class="flex items-center justify-between text-sm"><span class="font-medium text-[#66635E]">Payable Total</span><span id="checkout-total" class="font-mono-tech text-lg font-bold">₹0</span></div></div>
-          <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Create UPI Payment Link</button>
+          <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Continue to Secure Payment</button>
         </form>
       </div>
 
-      <!-- Step 2: UPI payment link; Razorpay sends the same link by SMS -->
+      <!-- Step 2: Razorpay Standard Checkout -->
       <div id="checkout-step-2" class="checkout-step hidden text-center" style="display:none">
         <span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3.5 py-1 font-mono-tech text-[11px] font-bold">Pay exactly <span id="upi-amount-label">₹0</span></span>
-        <h3 class="font-editorial mt-3 text-3xl font-bold">Pay using any UPI app</h3>
-        <p class="mt-2 text-sm text-[#66635E]">Razorpay has sent a secure payment link to your mobile number by SMS. Open it and choose your UPI app.</p>
-        <a id="payment-link-open" href="#" target="_blank" rel="noopener noreferrer" class="btn-d mt-5 inline-flex w-full items-center justify-center py-3.5 text-xs uppercase tracking-wider">Open UPI Payment Page</a>
-        <button type="button" onclick="copyPaymentLink()" class="btn-l mt-3 w-full py-3 text-xs uppercase tracking-wider">Copy payment link</button>
-        <p id="sms-status" class="mt-3 text-xs font-bold text-[#15803D]">Payment link SMS requested from Razorpay.</p>
-        <p class="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#66635E]"><span class="wait-dot"></span><span id="qr-status">Waiting for Razorpay payment confirmation…</span><span id="qr-timer" class="font-mono-tech"></span></p>
-        <p class="mt-3 text-[11px] text-[#66635E]">Keep this page open after paying. Your order is confirmed only after Razorpay verifies payment.</p>
+        <h3 class="font-editorial mt-3 text-3xl font-bold">Complete secure payment</h3>
+        <p class="mt-2 text-sm text-[#66635E]">Razorpay Checkout is opening. On desktop, select UPI to scan the dynamic QR code. On mobile, choose an available UPI app.</p>
+        <p class="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#66635E]"><span class="wait-dot"></span><span id="qr-status">Waiting for verified payment confirmation…</span></p>
+        <p class="mt-3 text-[11px] text-[#66635E]">Do not close this page until payment verification finishes. If you close Checkout, you can retry the status check.</p>
+        <button type="button" onclick="checkCurrentOrderStatus()" class="btn-l mt-4 w-full py-3 text-xs uppercase tracking-wider">Check payment status</button>
       </div>
 
       <!-- Step 3: result, then automatic return to website -->
@@ -316,6 +314,7 @@
 
   <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 translate-y-4 rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9] opacity-0 shadow-xl transition-all duration-300" role="status" aria-live="polite">Added to cart!</div>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     /* ================= CONFIG ================= */
     const PARDHU_EMAIL="pardhasaradhi493@gmail.com";
@@ -542,86 +541,34 @@
     }
     function showCheckoutStep(id){document.querySelectorAll(".checkout-step").forEach(e=>{e.classList.add("hidden");e.style.display="none";});const el=document.getElementById(id);if(el){el.classList.remove("hidden");el.style.display="block";}}
 
-    /* Create a fixed-amount UPI Payment Link on the server; Razorpay sends it by SMS. */
+    /* Create a server-side Razorpay Order and launch Standard Checkout. */
     async function proceedToPayment(e){
-      e.preventDefault();
-      const lines=cartLines();if(!lines.length)return;
-      const customer={
-        name:document.getElementById("pay-name").value.trim(),
-        phone:document.getElementById("pay-phone").value.trim(),
-        email:document.getElementById("pay-email").value.trim()
-      };
-      const submit=e.submitter;
-      if(submit){submit.disabled=true;submit.textContent="Creating payment link…";}
+      e.preventDefault();const lines=cartLines();if(!lines.length)return;
+      const customer={name:document.getElementById("pay-name").value.trim(),phone:document.getElementById("pay-phone").value.trim(),email:document.getElementById("pay-email").value.trim()};
+      const submit=e.submitter;if(submit){submit.disabled=true;submit.textContent="Preparing secure checkout…";}
       try{
-        const response=await fetch(`${API_BASE_URL}/api/create-payment-link`,{
-          method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty}))})
-        });
-        const data=await response.json();
-        if(!response.ok)throw new Error(data.error||"Could not create payment link.");
-        currentOrder={ref:data.ref,total:data.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email,paymentUrl:data.payment_url};
-        finished=false;showPaymentLinkStep(data.payment_url);
+        const r=await fetch(`${API_BASE_URL}/api/create-order`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty}))})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create Razorpay order.");
+        currentOrder={ref:d.ref,orderId:d.order_id,total:d.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email};finished=false;
+        document.getElementById("upi-amount-label").textContent=money(currentOrder.total);document.getElementById("qr-status").textContent="Razorpay Checkout is ready. Complete payment to verify your order.";showCheckoutStep("checkout-step-2");
+        const options={key:d.key_id,amount:d.amount,currency:"INR",name:"Pardhu ECE Labs",description:`Order ${d.ref}`,order_id:d.order_id,prefill:{name:d.name,email:d.email,contact:d.contact},theme:{color:"#1A1A1A"},handler:async function(resp){await verifyCheckoutPayment(resp);},modal:{ondismiss:function(){document.getElementById("qr-status").textContent="Checkout closed. If you completed payment, use Check payment status.";}}};
+        const checkout=new Razorpay(options);checkout.on("payment.failed",function(resp){document.getElementById("qr-status").textContent=resp.error?.description||"Payment failed. You can retry checkout.";});checkout.open();
+        startStatusWatch();
       }catch(err){showToast(err.message||"Payment setup failed. Please try again.");}
-      finally{if(submit){submit.disabled=false;submit.textContent="Create UPI Payment Link";}}
+      finally{if(submit){submit.disabled=false;submit.textContent="Continue to Secure Payment";}}
     }
-
-    function showPaymentLinkStep(paymentUrl){
-      const o=currentOrder;
-      document.getElementById("upi-amount-label").textContent=money(o.total);
-      const link=document.getElementById("payment-link-open");link.href=paymentUrl;
-      document.getElementById("sms-status").textContent=`Razorpay has been asked to send the payment link by SMS to ${o.phone}.`;
-      document.getElementById("qr-status").textContent="Waiting for Razorpay payment confirmation…";
-      showCheckoutStep("checkout-step-2");startStatusWatch();
+    async function verifyCheckoutPayment(resp){
+      if(!currentOrder||finished)return;document.getElementById("qr-status").textContent="Verifying payment securely with Razorpay…";
+      try{const r=await fetch(`${API_BASE_URL}/api/verify-payment`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:currentOrder.ref,...resp})});const d=await r.json();if(d.status==="paid"){finishPayment("paid","",d.payment_id,d.email_status);}else{document.getElementById("qr-status").textContent=d.message||d.error||"Payment is not captured yet. Checking again…";}}
+      catch(_){document.getElementById("qr-status").textContent="Payment submitted. Waiting for server confirmation…";}
     }
-    async function copyPaymentLink(){
-      if(!currentOrder?.paymentUrl)return;
-      try{await navigator.clipboard.writeText(currentOrder.paymentUrl);showToast("Payment link copied!");}
-      catch(_){showToast("Open the payment page using the button above.");}
-    }
-
-    function startStatusWatch(){
-      stopWatch();
-      const started=Date.now(),ref=currentOrder.ref;
-      const timerEl=document.getElementById("qr-timer");
-      timerTick=setInterval(()=>{
-        const left=Math.max(0,QR_TIMEOUT_MS-(Date.now()-started)),m=Math.floor(left/60000),s=Math.floor(left%60000/1000);
-        timerEl.textContent=`${m}:${String(s).padStart(2,"0")}`;
-      },1000);
-      const poll=async()=>{
-        if(finished||!currentOrder)return;
-        if(Date.now()-started>QR_TIMEOUT_MS){
-          finishPayment("failed","The payment link expired before Razorpay confirmed payment.");return;
-        }
-        try{
-          const r=await fetch(`${API_BASE_URL}/api/status?ref=${encodeURIComponent(ref)}`,{cache:"no-store"});
-          const d=await r.json();
-          if(d.status==="paid")finishPayment("paid","",d.payment_id||"");
-          else if(d.status==="failed"||d.status==="expired")finishPayment("failed",d.reason||"Razorpay reported that the payment was not completed.");
-        }catch(_){/* transient network error: continue polling */}
-      };
-      pollTimer=setInterval(poll,POLL_MS);poll();
-    }
-    function stopWatch(){clearInterval(pollTimer);clearInterval(timerTick);pollTimer=timerTick=null;}
-
-    /* A paid result is displayed only after the backend verifies the Razorpay Payment Link is paid for the exact INR amount. */
-    function finishPayment(status,reason="",paymentId=""){
-      if(finished||!currentOrder)return;
-      finished=true;stopWatch();
-      const o=currentOrder,ok=status==="paid";
-      const icon=document.getElementById("result-icon");
-      icon.textContent=ok?"✓":"✕";icon.style.background=ok?"#15803D":"#DC2626";
-      document.getElementById("result-title").textContent=ok?"Payment Successful":"Payment Not Completed";
-      document.getElementById("result-msg").textContent=ok
-        ?`${money(o.total)} verified by Razorpay. Order details have been emailed to ${o.email}.`
-        :`${reason||"Payment was not completed."} Your cart is saved, and you can try again.`;
-      document.getElementById("checkout-close").style.display="none";
-      showCheckoutStep("checkout-step-result");
-      if(ok){cart=[];saveCart();}
-      returnTimer=setTimeout(()=>{
-        document.getElementById("checkout-close").style.display="";
-        closeCheckoutModal();switchPage("home");showOrderBanner(status);currentOrder=null;
-      },RETURN_DELAY_MS);
+    function startStatusWatch(){stopWatch();const ref=currentOrder.ref;const poll=async()=>{if(finished||!currentOrder)return;try{const r=await fetch(`${API_BASE_URL}/api/status?ref=${encodeURIComponent(ref)}`,{cache:"no-store"});const d=await r.json();if(d.status==="paid")finishPayment("paid","",d.payment_id,d.email_status);else document.getElementById("qr-status").textContent="Waiting for Razorpay to confirm captured payment…";}catch(_){}};pollTimer=setInterval(poll,POLL_MS);poll();}
+    async function checkCurrentOrderStatus(){if(!currentOrder)return;try{const r=await fetch(`${API_BASE_URL}/api/status?ref=${encodeURIComponent(currentOrder.ref)}`,{cache:"no-store"});const d=await r.json();if(d.status==="paid")finishPayment("paid","",d.payment_id,d.email_status);else showToast("Payment is not confirmed yet.");}catch(_){showToast("Could not check status. Try again.");}}
+    function stopWatch(){clearInterval(pollTimer);pollTimer=null;}
+    function finishPayment(status,reason="",paymentId="",emailStatus=null){if(finished||!currentOrder)return;finished=true;stopWatch();const o=currentOrder,ok=status==="paid";const icon=document.getElementById("result-icon");icon.textContent=ok?"✓":"✕";icon.style.background=ok?"#15803D":"#DC2626";document.getElementById("result-title").textContent=ok?"Payment Successful":"Payment Not Completed";
+      let msg=ok?`${money(o.total)} payment verified by Razorpay. Order reference: ${o.ref}. `:"Payment was not confirmed. "+(reason||"Please check your payment status before trying again.");
+      if(ok){msg+=`We have received your requirements. Our team will review your order and contact you soon. Order reference: ${o.ref}.`; }
+      document.getElementById("result-msg").textContent=msg;document.getElementById("checkout-close").style.display="none";showCheckoutStep("checkout-step-result");if(ok){cart=[];saveCart();}
+      returnTimer=setTimeout(()=>{document.getElementById("checkout-close").style.display="";closeCheckoutModal();switchPage("home");showOrderBanner(status);currentOrder=null;},RETURN_DELAY_MS);
     }
 
     /* ---------- order banner ---------- */
@@ -630,7 +577,7 @@
       const ok=status==="paid";
       b.className="border-b px-4 py-3.5 text-sm "+(ok?"border-[#15803D]/25 bg-[#ECFDF5] text-[#14532D]":"border-[#DC2626]/25 bg-[#FEF2F2] text-[#7F1D1D]");
       i.textContent=ok?"✓":"✕";i.style.background=ok?"#15803D":"#DC2626";
-      t.textContent=ok?"Payment successful! Your order is confirmed — check your email for the details.":"Payment failed or expired. Your cart is saved — please try again.";
+      t.textContent=ok?"Payment successful! We have received your requirements. Our team will review your order and contact you soon.":"Payment failed or expired. Your cart is saved — please try again.";
       b.style.display="block";
     }
     function hideOrderBanner(){const b=document.getElementById("order-banner");if(b){b.classList.add("hidden");b.style.display="none";}}

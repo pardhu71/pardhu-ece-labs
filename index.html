@@ -26,6 +26,8 @@
     .inp-c{width:100%;border-bottom:1px solid rgba(26,26,26,.2);background:#fff;padding:.75rem .875rem;font-size:.875rem;color:#1A1A1A}
     .inp-c:focus{border-color:#1A1A1A;outline:none}
     #upi-qr-code img,#upi-qr-code canvas{margin:0 auto;border-radius:8px}
+    @keyframes pulse-dot{0%,100%{opacity:.25}50%{opacity:1}}
+    .wait-dot{display:inline-block;width:8px;height:8px;border-radius:9999px;background:#1A1A1A;animation:pulse-dot 1.2s infinite}
   </style>
 </head>
 <body class="antialiased selection:bg-[#1A1A1A] selection:text-[#F4EFE9]">
@@ -63,6 +65,17 @@
       <button type="button" onclick="switchPage('contact')" data-nav="contact" class="nav-link px-2 py-1 font-bold text-[#1A1A1A] opacity-70">Contact</button>
     </div>
   </header>
+
+  <!-- ORDER STATUS BANNER (shown automatically after the payment result) -->
+  <div id="order-banner" class="hidden border-b px-4 py-3.5 text-sm" style="display:none" role="status" aria-live="polite">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span id="banner-icon" class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white">✓</span>
+        <span id="banner-text" class="font-bold"></span>
+      </div>
+      <button type="button" onclick="hideOrderBanner()" aria-label="Close message" class="rounded-full px-2.5 py-1 text-xs font-bold hover:bg-black/5">✕</button>
+    </div>
+  </div>
 
   <!-- PAGE 1: HOME -->
   <main id="page-home" class="page-view">
@@ -106,7 +119,7 @@
       <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div class="card-c p-8 sm:p-12">
           <div class="grid items-center gap-10 md:grid-cols-12">
-            <div class="md:col-span-4"><div class="mx-auto w-full max-w-[260px] overflow-hidden rounded-xl border border-[#DFD8CC] bg-[#EAECEF]"><img src="pardhu.jpg" alt="Pardhu - ECE Project Engineer" onerror="this.src='https://ui-avatars.com/api/?name=Pardhu+ECE&background=1A1A1A&color=F4EFE9&size=400'" class="aspect-[3/4] w-full object-cover object-top" /></div></div>
+            <div class="md:col-span-4"><div class="mx-auto w-full max-w-[260px] overflow-hidden rounded-xl border border-[#DFD8CC] bg-[#EAECEF]"><img src="pardhu.jpg" alt="Pardhu - ECE Project Engineer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Pardhu+ECE&background=1A1A1A&color=F4EFE9&size=400'" class="aspect-[3/4] w-full object-cover object-top" /></div></div>
             <div class="md:col-span-8">
               <p class="font-mono-tech text-[11px] font-bold uppercase tracking-[0.2em] text-[#66635E]">About Me</p>
               <h2 class="font-editorial mt-2 text-4xl font-bold sm:text-5xl">Pardhu</h2>
@@ -190,15 +203,15 @@
         </div>
         <form id="custom-form" class="card-c p-6 lg:col-span-3 sm:p-8">
           <div class="grid gap-5 sm:grid-cols-2">
-            <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Name *</label><input id="req-name" type="text" required placeholder="e.g. Karthik Reddy" class="inp-c" /></div>
-            <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Phone / WhatsApp *</label><input id="req-phone" type="tel" required placeholder="10-digit mobile number" class="inp-c" /></div>
+            <div><label for="req-name" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Name *</label><input id="req-name" type="text" required placeholder="e.g. Karthik Reddy" class="inp-c" /></div>
+            <div><label for="req-phone" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Phone / WhatsApp *</label><input id="req-phone" type="tel" required placeholder="10-digit mobile number" class="inp-c" /></div>
           </div>
           <div class="mt-5 grid gap-5 sm:grid-cols-2">
-            <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Domain *</label><select id="req-domain" class="inp-c"><option value="Embedded Systems & IoT">Embedded Systems &amp; IoT</option><option value="MATLAB / Signal & Image Processing">MATLAB / Signal &amp; Image Processing</option><option value="VLSI, Verilog & FPGA">VLSI, Verilog &amp; FPGA</option><option value="Robotics & Automation">Robotics &amp; Automation</option><option value="RF, Wireless & Communication">RF, Wireless &amp; Communication</option><option value="Custom Project Kit">Custom Project Kit</option></select></div>
-            <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Format *</label><select id="req-type" class="inp-c"><option value="Hardware + Code + Report/PPT">Hardware + Code + Report/PPT</option><option value="Software / Simulation + Docs">Software / Simulation + Docs</option><option value="IEEE Base Paper Implementation">IEEE Base Paper Implementation</option><option value="Custom Hardware Kit Only">Custom Hardware Kit Only</option></select></div>
+            <div><label for="req-domain" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Domain *</label><select id="req-domain" class="inp-c"><option value="Embedded Systems & IoT">Embedded Systems &amp; IoT</option><option value="MATLAB / Signal & Image Processing">MATLAB / Signal &amp; Image Processing</option><option value="VLSI, Verilog & FPGA">VLSI, Verilog &amp; FPGA</option><option value="Robotics & Automation">Robotics &amp; Automation</option><option value="RF, Wireless & Communication">RF, Wireless &amp; Communication</option><option value="Custom Project Kit">Custom Project Kit</option></select></div>
+            <div><label for="req-type" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Format *</label><select id="req-type" class="inp-c"><option value="Hardware + Code + Report/PPT">Hardware + Code + Report/PPT</option><option value="Software / Simulation + Docs">Software / Simulation + Docs</option><option value="IEEE Base Paper Implementation">IEEE Base Paper Implementation</option><option value="Custom Hardware Kit Only">Custom Hardware Kit Only</option></select></div>
           </div>
-          <div class="mt-5"><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Project Title / Idea *</label><input id="req-title" type="text" required placeholder="Enter your own project title" class="inp-c" /></div>
-          <div class="mt-5"><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Requirements / Abstract / IEEE Drive Link *</label><textarea id="req-details" rows="4" required placeholder="Describe sensors/software needed or paste a Drive link..." class="inp-c"></textarea></div>
+          <div class="mt-5"><label for="req-title" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Project Title / Idea *</label><input id="req-title" type="text" required placeholder="Enter your own project title" class="inp-c" /></div>
+          <div class="mt-5"><label for="req-details" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Requirements / Abstract / IEEE Drive Link *</label><textarea id="req-details" rows="4" required placeholder="Describe sensors/software needed or paste a Drive link..." class="inp-c"></textarea></div>
           <div class="mt-6 grid gap-3 sm:grid-cols-2">
             <button type="button" onclick="sendCustomProject('whatsapp')" class="btn-d px-5 py-3.5 text-xs">Send via WhatsApp</button>
             <button type="button" onclick="sendCustomProject('email')" class="btn-l px-5 py-3.5 text-xs">Send via Email</button>
@@ -222,10 +235,10 @@
           <h3 class="font-editorial text-3xl font-bold">Send a Quick Message</h3><p class="mt-1 text-xs text-[#66635E]">Ask anything about projects, starter kits, or viva guidance.</p>
           <div class="mt-6 space-y-5">
             <div class="grid gap-4 sm:grid-cols-2">
-              <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Name *</label><input id="ct-name" type="text" required placeholder="Your name" class="inp-c" /></div>
-              <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Phone / WhatsApp *</label><input id="ct-phone" type="tel" required placeholder="10-digit number" class="inp-c" /></div>
+              <div><label for="ct-name" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Your Name *</label><input id="ct-name" type="text" required placeholder="Your name" class="inp-c" /></div>
+              <div><label for="ct-phone" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Phone / WhatsApp *</label><input id="ct-phone" type="tel" required placeholder="10-digit number" class="inp-c" /></div>
             </div>
-            <div><label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Message *</label><textarea id="ct-msg" rows="4" required placeholder="How can I help with your ECE project or kit?" class="inp-c"></textarea></div>
+            <div><label for="ct-msg" class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Message *</label><textarea id="ct-msg" rows="4" required placeholder="How can I help with your ECE project or kit?" class="inp-c"></textarea></div>
             <div class="grid gap-3 sm:grid-cols-2"><button type="button" onclick="sendQuickContact('whatsapp')" class="btn-d py-3.5 text-xs">Send on WhatsApp</button><button type="button" onclick="sendQuickContact('email')" class="btn-l py-3.5 text-xs">Send via Email</button></div>
           </div>
         </form>
@@ -246,9 +259,9 @@
   </footer>
 
   <!-- ITEM DETAILS MODAL -->
-  <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm" style="display:none">
+  <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm" style="display:none" role="dialog" aria-modal="true">
     <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#DFD8CC] bg-[#F4EFE9] p-6 shadow-2xl sm:p-8">
-      <button type="button" onclick="closeProjectModal()" class="absolute right-4 top-4 rounded-full p-2 text-[#66635E] hover:bg-[#DFD8CC]/50"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button type="button" onclick="closeProjectModal()" aria-label="Close" class="absolute right-4 top-4 rounded-full p-2 text-[#66635E] hover:bg-[#DFD8CC]/50"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
       <div id="modal-content"></div>
     </div>
   </div>
@@ -257,82 +270,60 @@
   <div id="cart-drawer" class="fixed inset-0 z-50 hidden" style="display:none">
     <div onclick="toggleCart(false)" class="absolute inset-0 bg-black/35 backdrop-blur-sm"></div>
     <div class="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-[#DFD8CC] bg-[#F4EFE9] shadow-2xl">
-      <div class="flex items-center justify-between border-b border-[#DFD8CC] bg-[#FAF8F5] p-5"><h3 class="font-editorial text-2xl font-bold">Your Cart</h3><button type="button" onclick="toggleCart(false)" class="rounded-full p-1.5 text-[#66635E]"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+      <div class="flex items-center justify-between border-b border-[#DFD8CC] bg-[#FAF8F5] p-5"><h3 class="font-editorial text-2xl font-bold">Your Cart</h3><button type="button" onclick="toggleCart(false)" aria-label="Close cart" class="rounded-full p-1.5 text-[#66635E]"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
       <div id="cart-items" class="flex-1 space-y-3 overflow-y-auto p-5"></div>
       <div class="border-t border-[#DFD8CC] bg-[#FAF8F5] p-5"><div class="mb-4 flex items-center justify-between text-base"><span class="font-medium text-[#66635E]">Total Amount</span><span id="cart-total" class="font-mono-tech text-xl font-bold">₹0</span></div><button type="button" id="checkout-btn" onclick="openCheckoutModal()" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider disabled:opacity-40">Proceed to Online Payment</button></div>
     </div>
   </div>
 
-  <!-- CHECKOUT MODAL (NO MOBILE DEEP-LINK, CLEAN QR + COPY NUMBER + COPY UPI) -->
-  <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/45 p-4 backdrop-blur-sm" style="display:none">
+  <!-- CHECKOUT MODAL: details → QR only → result (auto-returns to website) -->
+  <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/45 p-4 backdrop-blur-sm" style="display:none" role="dialog" aria-modal="true">
     <div class="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#DFD8CC] bg-[#F4EFE9] p-6 shadow-2xl sm:p-8">
-      <button type="button" onclick="closeCheckoutModal()" class="absolute right-4 top-4 rounded-full p-2 text-[#66635E] hover:bg-[#DFD8CC]/50"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button type="button" id="checkout-close" onclick="closeCheckoutModal()" aria-label="Close" class="absolute right-4 top-4 rounded-full p-2 text-[#66635E] hover:bg-[#DFD8CC]/50"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
 
+      <!-- Step 1: customer details -->
       <div id="checkout-step-1" class="checkout-step">
-        <h3 class="font-editorial text-3xl font-bold">Checkout</h3>
-        <p class="mt-1 text-xs text-[#66635E]">Enter your details to proceed to online payment.</p>
+        <h3 class="font-editorial text-3xl font-bold">Checkout</h3><p class="mt-1 text-xs text-[#66635E]">Enter your details. After payment is verified by Razorpay, an order confirmation will be emailed to you.</p>
         <form onsubmit="proceedToPayment(event)" class="mt-6 space-y-4">
-          <div><label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Student Full Name *</label><input id="pay-name" type="text" required placeholder="Your full name" class="inp-c" /></div>
-          <div class="grid gap-3 sm:grid-cols-2"><div><label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Mobile / WhatsApp *</label><input id="pay-phone" type="tel" required placeholder="10-digit number" class="inp-c" /></div><div><label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Email *</label><input id="pay-email" type="email" required placeholder="student@example.com" class="inp-c" /></div></div>
-          <div class="card-c p-4"><div class="flex items-center justify-between text-sm"><span class="font-medium text-[#66635E]">Payable Total</span><span id="checkout-total" class="font-mono-tech text-lg font-bold">₹0</span></div><p class="mt-1 text-[11px] text-[#66635E]">Pay via PhonePe, Google Pay, Paytm, or any UPI app.</p></div>
-          <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Continue to Online Payment</button>
+          <div><label for="pay-name" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Student Full Name *</label><input id="pay-name" type="text" required placeholder="Your full name" class="inp-c" /></div>
+          <div class="grid gap-3 sm:grid-cols-2"><div><label for="pay-phone" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Mobile / WhatsApp *</label><input id="pay-phone" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" placeholder="10-digit number" class="inp-c" /></div><div><label for="pay-email" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Email *</label><input id="pay-email" type="email" required placeholder="student@example.com" class="inp-c" /></div></div>
+          <div class="card-c p-4"><div class="flex items-center justify-between text-sm"><span class="font-medium text-[#66635E]">Payable Total</span><span id="checkout-total" class="font-mono-tech text-lg font-bold">₹0</span></div></div>
+          <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Show Payment QR</button>
         </form>
       </div>
 
+      <!-- Step 2: QR ONLY -->
       <div id="checkout-step-2" class="checkout-step hidden text-center" style="display:none">
-        <span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3.5 py-1 font-mono-tech text-[11px] font-bold">Payable Amount: <span id="upi-amount-label">₹0</span></span>
-        <h3 class="font-editorial mt-3 text-3xl font-bold">Scan &amp; Pay via UPI</h3>
-        <p id="upi-items-label" class="mt-1 text-xs font-medium text-[#66635E]"></p>
+        <span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3.5 py-1 font-mono-tech text-[11px] font-bold">Pay exactly <span id="upi-amount-label">₹0</span></span>
+        <h3 class="font-editorial mt-3 text-3xl font-bold">Scan &amp; Pay</h3>
         <div class="mx-auto mt-4 inline-block rounded-2xl border border-[#DFD8CC] bg-white p-4"><div id="upi-qr-code"></div></div>
-        <div class="mt-4 space-y-2">
-          <div class="flex items-center justify-between rounded-full border border-[#DFD8CC] bg-white px-4 py-2">
-            <span class="text-[11px] font-bold text-[#66635E]">UPI ID: <strong class="font-mono-tech text-[#1A1A1A]" id="display-upi-id">9494762055@ybl</strong></span>
-            <button type="button" onclick="copyText(PARDHU_UPI_ID,'UPI ID copied!')" class="rounded-full bg-[#F4EFE9] px-3 py-1 text-[11px] font-bold hover:bg-[#DFD8CC]">Copy</button>
-          </div>
-          <div class="flex items-center justify-between rounded-full border border-[#DFD8CC] bg-white px-4 py-2">
-            <span class="text-[11px] font-bold text-[#66635E]">PhonePe / GPay: <strong class="font-mono-tech text-[#1A1A1A]">9494762055</strong></span>
-            <button type="button" onclick="copyText('9494762055','Mobile number copied!')" class="rounded-full bg-[#F4EFE9] px-3 py-1 text-[11px] font-bold hover:bg-[#DFD8CC]">Copy</button>
-          </div>
-        </div>
-        <p class="mt-3 text-[11px] text-[#66635E]">Scan the QR code, or copy the UPI ID / Mobile Number above to pay in PhonePe, GPay, or Paytm.</p>
-        <button type="button" onclick="checkTransactionStatus()" class="btn-d mt-4 w-full py-3.5 text-xs uppercase tracking-wider">Check Payment Status →</button>
-        <button type="button" onclick="showPaymentFailed('Payment was cancelled before completion.')" class="mt-2.5 w-full rounded-full border border-red-300 bg-white py-2.5 text-xs font-bold text-red-700 hover:bg-red-50">Payment Failed / Cancel</button>
+        <p class="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#66635E]"><span class="wait-dot"></span><span id="qr-status">Waiting for payment…</span><span id="qr-timer" class="font-mono-tech"></span></p>
+
       </div>
 
-      <div id="checkout-step-checking" class="checkout-step hidden py-10 text-center" style="display:none"><div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#DFD8CC] border-t-[#1A1A1A]"></div><h3 class="font-editorial mt-5 text-2xl font-bold">Checking Payment Status...</h3><p class="mt-2 text-xs text-[#66635E]">Verifying transaction completion.</p></div>
-
-      <div id="checkout-step-manual" class="checkout-step hidden py-3 text-center" style="display:none">
-        <span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3.5 py-1 font-mono-tech text-[11px] font-bold">Status Check</span>
-        <h3 class="font-editorial mt-3 text-3xl font-bold">Was the Transaction Completed?</h3>
-        <p class="mt-2 text-sm text-[#57534E]">Confirm whether <span id="check-amount-label" class="font-mono-tech font-bold text-[#1A1A1A]">₹0</span> was debited successfully in your UPI app.</p>
-        <div class="mt-6 grid gap-3 sm:grid-cols-2"><button type="button" onclick="showPaymentSuccess('UPI-'+Date.now().toString().slice(-6))" class="rounded-full bg-[#15803D] py-3.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#166534]">✓ Yes, Payment Done</button><button type="button" onclick="showPaymentFailed('UPI transaction was not completed or failed in your UPI app.')" class="rounded-full bg-[#DC2626] py-3.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#B91C1C]">✕ No, Payment Failed</button></div>
-      </div>
-
-      <div id="checkout-step-success" class="checkout-step hidden py-4 text-center" style="display:none">
-        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#15803D] text-2xl font-bold text-white">✓</div>
-        <span class="mt-3 inline-block rounded-full bg-[#15803D]/10 px-3 py-1 font-mono-tech text-[11px] font-bold text-[#15803D]">STATUS: SUCCESS</span>
-        <h3 class="font-editorial mt-2 text-3xl font-bold">Payment Successful!</h3>
-        <p class="mt-2 text-sm text-[#57534E]">Thank you, <span id="done-name" class="font-bold text-[#1A1A1A]"></span>. Your order for <span id="done-amount" class="font-mono-tech font-bold text-[#1A1A1A]"></span> is confirmed.</p>
-        <p id="done-ref" class="mt-1 font-mono-tech text-[11px] font-bold text-[#66635E]"></p>
-        <div class="card-c mt-5 p-4 text-left text-xs"><p class="font-bold">Items Ordered:</p><p id="done-items" class="mt-1 leading-relaxed text-[#57534E]"></p></div>
-        <div class="mt-5 space-y-2.5"><button type="button" onclick="notifyOrderWhatsApp()" class="btn-d w-full py-3 text-xs">Send Order Confirmation to Pardhu on WhatsApp</button><button type="button" onclick="closeCheckoutModal()" class="btn-l w-full py-2.5 text-xs">Done &amp; Return to Website</button></div>
-      </div>
-
-      <div id="checkout-step-fail" class="checkout-step hidden py-4 text-center" style="display:none">
-        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#DC2626] text-2xl font-bold text-white">✕</div>
-        <span class="mt-3 inline-block rounded-full bg-[#DC2626]/10 px-3 py-1 font-mono-tech text-[11px] font-bold text-[#DC2626]">STATUS: FAILED</span>
-        <h3 class="font-editorial mt-2 text-3xl font-bold">Payment Failed</h3>
-        <p id="fail-reason" class="mt-2 text-sm text-[#57534E]">Your transaction could not be completed. Don't worry—your cart items are still saved.</p>
-        <div class="mt-6 space-y-2.5"><button type="button" onclick="retryPayment()" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Retry Payment</button><a href="https://wa.me/919494762055?text=Hi%20Pardhu%2C%20my%20online%20payment%20failed.%20Please%20help%20me%20complete%20the%20order." target="_blank" rel="noopener noreferrer" class="btn-l w-full py-2.5 text-xs">Get Help on WhatsApp</a></div>
+      <!-- Step 3: result, then automatic return to website -->
+      <div id="checkout-step-result" class="checkout-step hidden py-6 text-center" style="display:none">
+        <div id="result-icon" class="mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl font-bold text-white">✓</div>
+        <h3 id="result-title" class="font-editorial mt-3 text-3xl font-bold"></h3>
+        <p id="result-msg" class="mt-2 text-sm text-[#57534E]"></p>
+        <p class="mt-5 text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Returning to website…</p>
       </div>
     </div>
   </div>
 
-  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 translate-y-4 rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9] opacity-0 shadow-xl transition-all duration-300">Added to cart!</div>
+  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 translate-y-4 rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9] opacity-0 shadow-xl transition-all duration-300" role="status" aria-live="polite">Added to cart!</div>
 
   <script>
-    const PARDHU_EMAIL="pardhasaradhi493@gmail.com",PARDHU_UPI_ID="9494762055@ybl",PARDHU_WHATSAPP="919494762055",RAZORPAY_KEY_ID="",VERIFY_API_URL="";
-    document.getElementById("display-upi-id").textContent=PARDHU_UPI_ID;
+    /* ================= CONFIG ================= */
+    const PARDHU_EMAIL="pardhasaradhi493@gmail.com";
+    const PARDHU_WHATSAPP="919494762055";
+    // Set this to your deployed Cloudflare Worker URL. Never put Razorpay secrets here.
+    const API_BASE_URL="https://pardhu-ece-labs-payments.pardhu-ece-labs.workers.dev";
+    const QR_TIMEOUT_MS=15*60*1000;
+    const POLL_MS=5000;
+    const RETURN_DELAY_MS=3500;
+    /* ========================================= */
+
     document.getElementById("year").textContent=new Date().getFullYear();
 
     const DL={embedded:"Embedded & IoT",matlab:"MATLAB / Signal & Image",vlsi:"VLSI & FPGA",robotics:"Robotics & Automation",rf:"RF & Communication"};
@@ -397,10 +388,10 @@
       P("vlsi-14","vlsi","IEEE-754 Single-Precision Floating-Point ALU",1900,"32-bit floating-point adder, subtractor, and multiplier supporting normalization and rounding modes.",["IEEE-754 Unpack/Normalize","Exception Flag Handling","Random Vector Testbench","Vivado LUT Report"],["Verilog FPU Modules","Verification Vectors","Report & PPT"]),
       P("vlsi-15","vlsi","BIST (Built-In Self-Test) LFSR Memory Controller",1700,"Implements March-C memory BIST with LFSR pattern generator and MISR signature analyzer.",["LFSR Pattern Generator","March-C FSM + MISR","Fault-Injection Testbench","Coverage Report"],["DFT Verilog RTL","Fault Waveforms","Report & Viva"]),
       P("vlsi-16","vlsi","Hardware Neural Network (MLP) Digit Classifier (Verilog)",2100,"Fixed-point MAC neurons with ReLU activation and quantized weights for MNIST digit inference on FPGA.",["Quantized Weight ROM","Systolic MAC + ReLU","Digit Pixel Testbench","FPGA Utilization Report"],["Verilog AI Core + Python Weights","Accuracy Verification","Report & PPT"]),
-      P("vlsi-17","vlsi","DDR / AMBA AHB-Lite Bus Arbiter & Bridge",1800,"Round-robin and priority-based multi-master AHB bus arbiter with AHB-to-APB protocol bridge.",["AHB Arbiter + Decoder","AHB2APB Bridge FSM","Multi-Master Testbench","Protocol Waveforms"],["SoC Bus Verilog RTL","Bus Timing Charts","Report & PPT"]),
+      P("vlsi-17","vlsi","AMBA AHB-Lite Bus Arbiter & AHB-to-APB Bridge",1800,"Round-robin and priority-based multi-master AHB bus arbiter with AHB-to-APB protocol bridge.",["AHB Arbiter + Decoder","AHB2APB Bridge FSM","Multi-Master Testbench","Protocol Waveforms"],["SoC Bus Verilog RTL","Bus Timing Charts","Report & PPT"]),
       P("vlsi-18","vlsi","Clock Gating & Power Optimization on Digital Filters",1700,"Demonstrates dynamic power reduction using integrated clock gating (ICG) and operand isolation.",["Baseline vs Gated RTL","ICG Latch Cell","Switching Activity SAIF","Power Comparison Report"],["Low-Power Verilog RTL","Power Charts","Report & PPT"]),
-      P("vlsi-19","vlsi","Vending Machine & Elevator Controller FSM (SystemVerilog)",1600,"SystemVerilog RTL + assertion-based verification (SVA) for multi-floor elevator scheduling.",["SystemVerilog FSM RTL","SVA Property Assertions","Constrained Random TB","Coverage Report"],["SV Design + Verification","Simulation Logs","Report & PPT"]),
-      P("vlsi-20","vlsi","HDMI / VGA Pattern & Pong Game Controller (Verilog)",1800,"Generates 640x480 @ 60Hz VGA sync signals and real-time sprite graphics on FPGA.",["HSync / VSync Generator","RGB Sprite Engine","Button/Paddle Control","Simulation & UCF/XDC"],["Verilog VGA Core","Constraint File","Report & PPT"]),
+      P("vlsi-19","vlsi","Multi-Floor Elevator Controller FSM (SystemVerilog)",1600,"SystemVerilog RTL + assertion-based verification (SVA) for multi-floor elevator scheduling.",["SystemVerilog FSM RTL","SVA Property Assertions","Constrained Random TB","Coverage Report"],["SV Design + Verification","Simulation Logs","Report & PPT"]),
+      P("vlsi-20","vlsi","VGA Pattern & Pong Game Controller (Verilog)",1800,"Generates 640x480 @ 60Hz VGA sync signals and real-time sprite graphics on FPGA.",["HSync / VSync Generator","RGB Sprite Engine","Button/Paddle Control","Simulation & UCF/XDC"],["Verilog VGA Core","Constraint File","Report & PPT"]),
       P("rob-01","robotics","4WD Obstacle Avoiding & Line Follower Rover",3200,"Dual-mode autonomous rover navigating obstacles via ultrasonic scanning and tracking paths via IR array.",["4WD Chassis + 4 BO Motors","Arduino Uno + L298N","HC-SR04 + Servo Mount","2x IR Sensors + Battery"],["Working Robot Hardware","Dual-Mode Firmware","Wiring, Report & PPT"]),
       P("rob-02","robotics","High-Speed PID Line Following Robot (5-Sensor Array)",3400,"Implements closed-loop PID control over a 5-channel IR array for smooth high-speed corner tracking.",["Arduino Nano/Uno","5-Channel IR Sensor Bar","TB6612FNG / L298N Driver","N20 / BO Motors + Chassis"],["PID Tuned Robot Build","PID Control Code","Report & Tuning Guide"]),
       P("rob-03","robotics","Bluetooth & App Controlled 4-DOF Robotic Arm",3800,"Precision 4-axis pick-and-place robotic manipulator controlled wirelessly via smartphone sliders.",["4-DOF Acrylic/Metal Arm","4x MG90S/SG90 Servos","Arduino Uno + HC-05","5V Regulated Supply"],["Assembled Arm Hardware","Servo Control Firmware","App & Report"]),
@@ -456,12 +447,21 @@
       K("kit-10","iot","SmartElex Bharat AI & IoT Innovators Kit",3399,"AI, robotics, and gesture/IoT innovation starter kit featuring sensors, servo, DC motor, and core controller.",["Arduino-Compatible Core","Gesture / Ultrasonic / Motion","Servo + DC Motor + Driver","Breadboard, Display & Wires"],["Bharat AI Innovators Kit","Gesture & IoT Codes","Project Guide"])
     ];
 
-    let activePage="home",activeFilter="embedded",activeKitFilter="all",allDomainLimit=24,currentOrderData=null,cart=[];
-    try{const s=localStorage.getItem("pardhu_ece_cart");cart=s?JSON.parse(s):[];if(!Array.isArray(cart))cart=[];}catch(e){cart=[];}
-    renderProjects();renderKits();updateCartUI();
+    let activePage="home",activeFilter="embedded",activeKitFilter="all",allDomainLimit=24;
+    let cart=[];            // stored as [{id,qty}] only — prices are ALWAYS re-read from the catalog
+    let currentOrder=null;  // order being paid
+    let pollTimer=null,timerTick=null,returnTimer=null,finished=false;
 
-    document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeProjectModal();closeCheckoutModal();toggleCart(false);}});
+    const findItemById=id=>[...projects,...projectKits].find(i=>i.id===id);
+    const money=n=>"₹"+Number(n).toLocaleString("en-IN");
 
+    try{const s=localStorage.getItem("pardhu_ece_cart");const raw=s?JSON.parse(s):[];cart=Array.isArray(raw)?raw.filter(c=>c&&findItemById(c.id)).map(c=>({id:c.id,qty:Math.max(1,parseInt(c.qty)||1)})):[];}catch(e){cart=[];}
+
+    /* Cart lines with trusted prices from the catalog */
+    function cartLines(){return cart.map(c=>{const it=findItemById(c.id);return it?{id:it.id,title:it.title,domainLabel:it.domainLabel,price:it.price,qty:c.qty}:null;}).filter(Boolean);}
+    const cartTotal=()=>cartLines().reduce((s,l)=>s+l.price*l.qty,0);
+
+    /* ---------- navigation ---------- */
     function switchPage(page,domainFilter=null){
       activePage=page;
       document.querySelectorAll(".page-view").forEach(s=>{s.classList.add("hidden");s.style.display="none";});
@@ -477,6 +477,7 @@
     function setKitFilter(f){activeKitFilter=f;document.querySelectorAll(".kit-filter-btn").forEach(b=>{b.className=b.dataset.kitFilter===f?"kit-filter-btn rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9]":"kit-filter-btn rounded-full border border-[#1A1A1A]/20 bg-white px-5 py-2.5 text-xs font-bold text-[#66635E] hover:border-[#1A1A1A]";});renderKits();}
     function clearSearch(id,fn){const el=document.getElementById(id);if(el){el.value="";fn();}}
 
+    /* ---------- catalog rendering ---------- */
     function renderProjects(){
       const grid=document.getElementById("projects-grid"),wrap=document.getElementById("load-more-wrap"),s=document.getElementById("search-input"),clr=document.getElementById("clear-search");
       const q=s?s.value.trim().toLowerCase():"";
@@ -497,8 +498,6 @@
     function buildCardHTML(item){
       return `<div class="card-c flex flex-col justify-between p-6 transition hover:-translate-y-1 hover:border-[#1A1A1A]/50 hover:bg-white"><div><div class="flex items-center justify-between gap-2"><span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3 py-1 font-mono-tech text-[10px] font-bold uppercase">${item.domainLabel}</span><span class="font-mono-tech text-lg font-bold">₹${item.price.toLocaleString("en-IN")}</span></div><h3 class="font-editorial mt-4 text-2xl font-bold leading-snug">${item.title}</h3><p class="mt-2.5 text-sm leading-relaxed text-[#66635E]">${item.summary}</p><div class="mt-4 flex flex-wrap gap-1.5">${item.components.slice(0,2).map(c=>`<span class="rounded-full bg-[#EFE9E0] px-2.5 py-0.5 text-[11px] font-bold">${c}</span>`).join("")}${item.components.length>2?`<span class="rounded-full border border-[#DFD8CC] px-2.5 py-0.5 text-[11px] font-bold text-[#66635E]">+${item.components.length-2} more</span>`:""}</div></div><div class="mt-6 grid grid-cols-2 gap-2.5 pt-4 dotted-t"><button type="button" onclick="viewItem('${item.id}')" class="btn-l px-3 py-2.5 text-xs">View Details</button><button type="button" onclick="addToCart('${item.id}')" class="btn-d px-3 py-2.5 text-xs">Add to Cart</button></div></div>`;
     }
-    const findItemById=id=>[...projects,...projectKits].find(i=>i.id===id);
-
     function viewItem(id){
       const item=findItemById(id);if(!item)return;
       document.getElementById("modal-content").innerHTML=`<span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3 py-1 font-mono-tech text-[11px] font-bold uppercase">${item.domainLabel}</span><h3 class="font-editorial mt-4 text-3xl font-bold">${item.title}</h3><p class="mt-3 text-sm leading-relaxed text-[#57534E]">${item.summary}</p><div class="card-c mt-5 p-5"><h4 class="text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Components &amp; Modules Included</h4><ul class="mt-3 space-y-1.5 text-sm">${item.components.map(c=>`<li class="flex items-start gap-2"><span class="font-bold">•</span><span>${c}</span></li>`).join("")}</ul></div><div class="card-c mt-4 p-5"><h4 class="text-[11px] font-bold uppercase tracking-wider text-[#66635E]">What You Receive</h4><ul class="mt-3 space-y-1.5 text-sm">${item.includes.map(x=>`<li class="flex items-start gap-2"><span class="font-bold">✓</span><span>${x}</span></li>`).join("")}</ul></div><div class="mt-6 flex flex-wrap items-center justify-between gap-4 pt-5 dotted-t"><div><span class="block text-xs text-[#66635E]">Total Price</span><span class="font-mono-tech text-2xl font-bold">₹${item.price.toLocaleString("en-IN")}</span></div><div class="flex gap-3"><a href="https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent("Hi Pardhu, I want details about: "+item.title)}" target="_blank" rel="noopener noreferrer" class="btn-l px-5 py-3 text-xs">Ask on WhatsApp</a><button type="button" onclick="addToCart('${item.id}');closeProjectModal();" class="btn-d px-6 py-3 text-xs">Add to Cart</button></div></div>`;
@@ -506,94 +505,130 @@
     }
     function closeProjectModal(){const m=document.getElementById("project-modal");m.classList.add("hidden");m.classList.remove("flex");m.style.display="none";}
 
-    function addToCart(id){const item=findItemById(id);if(!item)return;const ex=cart.find(c=>c.id===item.id);if(ex)ex.qty++;else cart.push({id:item.id,title:item.title,price:item.price,domainLabel:item.domainLabel,qty:1});saveCart();showToast("Added to cart!");}
+    /* ---------- cart ---------- */
+    function addToCart(id){
+      const item=findItemById(id);if(!item)return;
+      const ex=cart.find(c=>c.id===id);
+      if(ex){
+        if(!id.startsWith("kit-")){showToast("Project already in cart");return;}   // one deliverable per project
+        ex.qty++;
+      }else cart.push({id,qty:1});
+      saveCart();showToast("Added to cart!");
+    }
     function updateQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;i.qty+=d;if(i.qty<=0)cart=cart.filter(c=>c.id!==id);saveCart();}
     function saveCart(){try{localStorage.setItem("pardhu_ece_cart",JSON.stringify(cart));}catch(e){}updateCartUI();}
     function updateCartUI(){
       const cnt=document.getElementById("cart-count"),items=document.getElementById("cart-items"),tot=document.getElementById("cart-total"),btn=document.getElementById("checkout-btn");
-      const ti=cart.reduce((s,i)=>s+i.qty,0),ta=cart.reduce((s,i)=>s+i.price*i.qty,0);
-      cnt.textContent=ti;tot.textContent="₹"+ta.toLocaleString("en-IN");btn.disabled=!cart.length;
-      items.innerHTML=cart.length?cart.map(i=>`<div class="card-c p-4"><div class="flex items-start justify-between gap-3"><div><span class="font-mono-tech text-[10px] font-bold uppercase text-[#66635E]">${i.domainLabel}</span><h4 class="mt-0.5 text-sm font-bold">${i.title}</h4></div><span class="font-mono-tech text-sm font-bold">₹${(i.price*i.qty).toLocaleString("en-IN")}</span></div><div class="mt-3 flex items-center justify-between"><span class="text-xs text-[#66635E]">₹${i.price.toLocaleString("en-IN")} each</span><div class="flex items-center gap-2"><button type="button" onclick="updateQty('${i.id}',-1)" class="btn-l h-7 w-7 text-sm">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span><button type="button" onclick="updateQty('${i.id}',1)" class="btn-l h-7 w-7 text-sm">+</button></div></div></div>`).join(""):`<div class="py-12 text-center text-sm text-[#66635E]">Your cart is empty. Browse Projects, Project Kits, or send your own idea.</div>`;
+      const lines=cartLines();
+      cnt.textContent=lines.reduce((s,i)=>s+i.qty,0);tot.textContent=money(cartTotal());btn.disabled=!lines.length;
+      items.innerHTML=lines.length?lines.map(i=>`<div class="card-c p-4"><div class="flex items-start justify-between gap-3"><div><span class="font-mono-tech text-[10px] font-bold uppercase text-[#66635E]">${i.domainLabel}</span><h4 class="mt-0.5 text-sm font-bold">${i.title}</h4></div><span class="font-mono-tech text-sm font-bold">${money(i.price*i.qty)}</span></div><div class="mt-3 flex items-center justify-between"><span class="text-xs text-[#66635E]">${money(i.price)} each</span><div class="flex items-center gap-2"><button type="button" onclick="updateQty('${i.id}',-1)" aria-label="Decrease quantity" class="btn-l h-7 w-7 text-sm">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span>${i.id.startsWith("kit-")?`<button type="button" onclick="updateQty('${i.id}',1)" aria-label="Increase quantity" class="btn-l h-7 w-7 text-sm">+</button>`:`<span class="w-7"></span>`}</div></div></div>`).join(""):`<div class="py-12 text-center text-sm text-[#66635E]">Your cart is empty. Browse Projects, Project Kits, or send your own idea.</div>`;
     }
     function toggleCart(open){const d=document.getElementById("cart-drawer");d.classList.toggle("hidden",!open);d.style.display=open?"block":"none";}
 
+    /* ---------- checkout ---------- */
     function openCheckoutModal(){
-      toggleCart(false);showCheckoutStep("checkout-step-1");
-      document.getElementById("checkout-total").textContent="₹"+cart.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString("en-IN");
+      if(!cartLines().length)return;
+      toggleCart(false);stopWatch();clearTimeout(returnTimer);showCheckoutStep("checkout-step-1");
+      document.getElementById("checkout-total").textContent=money(cartTotal());
       const m=document.getElementById("checkout-modal");m.classList.remove("hidden");m.classList.add("flex");m.style.display="flex";
     }
-    function closeCheckoutModal(){const m=document.getElementById("checkout-modal");m.classList.add("hidden");m.classList.remove("flex");m.style.display="none";}
+    function closeCheckoutModal(){
+      stopWatch();
+      const m=document.getElementById("checkout-modal");m.classList.add("hidden");m.classList.remove("flex");m.style.display="none";
+    }
     function showCheckoutStep(id){document.querySelectorAll(".checkout-step").forEach(e=>{e.classList.add("hidden");e.style.display="none";});const el=document.getElementById(id);if(el){el.classList.remove("hidden");el.style.display="block";}}
 
-    function proceedToPayment(e){
+    /* Create a single-use, fixed-amount UPI QR on the server. The server re-prices item IDs. */
+    async function proceedToPayment(e){
       e.preventDefault();
-      const name=document.getElementById("pay-name").value.trim(),phone=document.getElementById("pay-phone").value.trim(),email=document.getElementById("pay-email").value.trim();
-      const totalAmount=cart.reduce((s,i)=>s+i.price*i.qty,0),itemSummary=cart.map(i=>`${i.title} (x${i.qty})`).join(", ");
-      currentOrderData={name,phone,email,totalAmount,itemSummary,refId:""};
-      if(RAZORPAY_KEY_ID){loadRazorpayAndLaunch(currentOrderData);return;}
-      openUpiQrStep();
-    }
-    function loadRazorpayAndLaunch(order){
-      if(typeof Razorpay!=="undefined"){launchRazorpay(order);return;}
-      showCheckoutStep("checkout-step-checking");
-      const s=document.createElement("script");s.src="https://checkout.razorpay.com/v1/checkout.js";
-      s.onload=()=>launchRazorpay(order);s.onerror=()=>openUpiQrStep();document.body.appendChild(s);
-    }
-    function openUpiQrStep(){
-      if(!currentOrderData)return;
-      const upi=`upi://pay?pa=${encodeURIComponent(PARDHU_UPI_ID)}&pn=${encodeURIComponent("Pardhu ECE Labs")}&cu=INR`;
-      document.getElementById("upi-amount-label").textContent="₹"+currentOrderData.totalAmount.toLocaleString("en-IN");
-      document.getElementById("upi-items-label").textContent="Order: "+currentOrderData.itemSummary;
-      const qr=document.getElementById("upi-qr-code");qr.innerHTML="";
-      if(typeof QRCode!=="undefined")new QRCode(qr,{text:upi,width:180,height:180,colorDark:"#1A1A1A",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M});
-      autoNotifyPardhu("PENDING_UPI");
-      showCheckoutStep("checkout-step-2");
-    }
-    function launchRazorpay(order){
-      let done=false;
-      const rzp=new Razorpay({
-        key:RAZORPAY_KEY_ID,amount:order.totalAmount*100,currency:"INR",name:"Pardhu ECE Labs",description:order.itemSummary.slice(0,200),
-        prefill:{name:order.name,email:order.email,contact:order.phone},theme:{color:"#1A1A1A"},
-        handler:async function(res){
-          done=true;showCheckoutStep("checkout-step-checking");
-          if(VERIFY_API_URL){
-            try{const r=await fetch(VERIFY_API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(res)}),d=await r.json();
-              if(d&&d.verified)showPaymentSuccess(res.razorpay_payment_id);else showPaymentFailed("Bank signature verification failed.");
-            }catch(e){showPaymentFailed("Unable to reach verification server.");}
-          }else{showPaymentSuccess(res.razorpay_payment_id);}
-        },
-        modal:{ondismiss:()=>{if(!done)showPaymentFailed("Payment window was closed before completing the transaction.");}}
-      });
-      rzp.on("payment.failed",r=>{done=true;showPaymentFailed((r&&r.error&&r.error.description)||"Transaction declined.");});
-      rzp.open();
-    }
-    function checkTransactionStatus(){if(!currentOrderData)return;showCheckoutStep("checkout-step-checking");document.getElementById("check-amount-label").textContent="₹"+currentOrderData.totalAmount.toLocaleString("en-IN");setTimeout(()=>showCheckoutStep("checkout-step-manual"),800);}
-    function showPaymentSuccess(refId){
-      if(!currentOrderData)return;currentOrderData.refId=refId||"";
-      document.getElementById("done-name").textContent=currentOrderData.name;
-      document.getElementById("done-amount").textContent="₹"+currentOrderData.totalAmount.toLocaleString("en-IN");
-      document.getElementById("done-items").textContent=currentOrderData.itemSummary;
-      document.getElementById("done-ref").textContent=refId?`Ref ID: ${refId}`:"";
-      cart=[];saveCart();
-      showCheckoutStep("checkout-step-success");
-      autoNotifyPardhu("PAYMENT_SUCCESS");
-    }
-    function showPaymentFailed(reason){document.getElementById("fail-reason").textContent=reason||"Your transaction could not be completed. Your cart items are still saved.";showCheckoutStep("checkout-step-fail");}
-    function retryPayment(){if(!currentOrderData){showCheckoutStep("checkout-step-1");return;}if(RAZORPAY_KEY_ID)loadRazorpayAndLaunch(currentOrderData);else openUpiQrStep();}
-    function notifyOrderWhatsApp(){
-      if(!currentOrderData)return;
-      const msg=`Hello Pardhu, Payment Status: SUCCESS\n\nName: ${currentOrderData.name}\nPhone: ${currentOrderData.phone}\nEmail: ${currentOrderData.email}\nItems: ${currentOrderData.itemSummary}\nTotal Paid: ₹${currentOrderData.totalAmount.toLocaleString("en-IN")}`+(currentOrderData.refId?`\nReference: ${currentOrderData.refId}`:"");
-      window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank");
-    }
-    function autoNotifyPardhu(status){
-      if(!currentOrderData)return;
+      const lines=cartLines();if(!lines.length)return;
+      const customer={
+        name:document.getElementById("pay-name").value.trim(),
+        phone:document.getElementById("pay-phone").value.trim(),
+        email:document.getElementById("pay-email").value.trim()
+      };
+      const submit=e.submitter;
+      if(submit){submit.disabled=true;submit.textContent="Creating secure QR…";}
       try{
-        fetch(`https://formsubmit.co/ajax/${PARDHU_EMAIL}`,{
-          method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
-          body:JSON.stringify({_subject:`[${status}] ₹${currentOrderData.totalAmount} Order - ${currentOrderData.name}`,_captcha:"false",_template:"table",Status:status,Student_Name:currentOrderData.name,Phone:currentOrderData.phone,Email:currentOrderData.email,Selected_Projects:currentOrderData.itemSummary,Total_Amount:"₹"+currentOrderData.totalAmount.toLocaleString("en-IN"),Reference_ID:currentOrderData.refId||"UPI QR"})
-        }).catch(()=>{});
-      }catch(e){}
+        const response=await fetch(`${API_BASE_URL}/api/create-qr`,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty}))})
+        });
+        const data=await response.json();
+        if(!response.ok)throw new Error(data.error||"Could not create payment QR.");
+        currentOrder={ref:data.ref,total:data.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email,qrCodeId:data.qr_code_id};
+        finished=false;showQrStep(data.image_url);
+      }catch(err){showToast(err.message||"Payment setup failed. Please try again.");}
+      finally{if(submit){submit.disabled=false;submit.textContent="Show Payment QR";}}
     }
+
+    function showQrStep(imageUrl){
+      const o=currentOrder;
+      document.getElementById("upi-amount-label").textContent=money(o.total);
+      const qr=document.getElementById("upi-qr-code");qr.innerHTML="";
+      if(typeof QRCode==="undefined")throw new Error("QR display library did not load. Refresh and try again.");
+      new QRCode(qr,{text:imageUrl,width:240,height:240,colorDark:"#1A1A1A",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M});
+      document.getElementById("qr-status").textContent="Waiting for Razorpay payment confirmation…";
+      showCheckoutStep("checkout-step-2");startStatusWatch();
+    }
+
+    function startStatusWatch(){
+      stopWatch();
+      const started=Date.now(),ref=currentOrder.ref;
+      const timerEl=document.getElementById("qr-timer");
+      timerTick=setInterval(()=>{
+        const left=Math.max(0,QR_TIMEOUT_MS-(Date.now()-started)),m=Math.floor(left/60000),s=Math.floor(left%60000/1000);
+        timerEl.textContent=`${m}:${String(s).padStart(2,"0")}`;
+      },1000);
+      const poll=async()=>{
+        if(finished||!currentOrder)return;
+        if(Date.now()-started>QR_TIMEOUT_MS){
+          try{await fetch(`${API_BASE_URL}/api/expire-qr`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref})});}catch(_){}
+          finishPayment("failed","The QR code expired before Razorpay confirmed payment.");return;
+        }
+        try{
+          const r=await fetch(`${API_BASE_URL}/api/status?ref=${encodeURIComponent(ref)}`,{cache:"no-store"});
+          const d=await r.json();
+          if(d.status==="paid")finishPayment("paid","",d.payment_id||"");
+          else if(d.status==="failed"||d.status==="expired")finishPayment("failed",d.reason||"Razorpay reported that the payment was not completed.");
+        }catch(_){/* transient network error: continue polling */}
+      };
+      pollTimer=setInterval(poll,POLL_MS);poll();
+    }
+    function stopWatch(){clearInterval(pollTimer);clearInterval(timerTick);pollTimer=timerTick=null;}
+
+    /* A paid result is displayed only after the backend verifies a captured payment directly with Razorpay APIs. */
+    function finishPayment(status,reason="",paymentId=""){
+      if(finished||!currentOrder)return;
+      finished=true;stopWatch();
+      const o=currentOrder,ok=status==="paid";
+      const icon=document.getElementById("result-icon");
+      icon.textContent=ok?"✓":"✕";icon.style.background=ok?"#15803D":"#DC2626";
+      document.getElementById("result-title").textContent=ok?"Payment Successful":"Payment Not Completed";
+      document.getElementById("result-msg").textContent=ok
+        ?`${money(o.total)} verified by Razorpay. Order details have been emailed to ${o.email}.`
+        :`${reason||"Payment was not completed."} Your cart is saved, and you can try again.`;
+      document.getElementById("checkout-close").style.display="none";
+      showCheckoutStep("checkout-step-result");
+      if(ok){cart=[];saveCart();}
+      returnTimer=setTimeout(()=>{
+        document.getElementById("checkout-close").style.display="";
+        closeCheckoutModal();switchPage("home");showOrderBanner(status);currentOrder=null;
+      },RETURN_DELAY_MS);
+    }
+
+    /* ---------- order banner ---------- */
+    function showOrderBanner(status){
+      const b=document.getElementById("order-banner"),t=document.getElementById("banner-text"),i=document.getElementById("banner-icon");
+      const ok=status==="paid";
+      b.className="border-b px-4 py-3.5 text-sm "+(ok?"border-[#15803D]/25 bg-[#ECFDF5] text-[#14532D]":"border-[#DC2626]/25 bg-[#FEF2F2] text-[#7F1D1D]");
+      i.textContent=ok?"✓":"✕";i.style.background=ok?"#15803D":"#DC2626";
+      t.textContent=ok?"Payment successful! Your order is confirmed — check your email for the details.":"Payment failed or expired. Your cart is saved — please try again.";
+      b.style.display="block";
+    }
+    function hideOrderBanner(){const b=document.getElementById("order-banner");if(b){b.classList.add("hidden");b.style.display="none";}}
+
+    /* ---------- forms & helpers ---------- */
     function sendCustomProject(ch){
       const f=document.getElementById("custom-form");if(!f.reportValidity())return;
       const msg=`Hi Pardhu, I want to submit my own custom ECE project:\n\nName: ${document.getElementById("req-name").value.trim()}\nPhone: ${document.getElementById("req-phone").value.trim()}\nDomain: ${document.getElementById("req-domain").value}\nFormat: ${document.getElementById("req-type").value}\nProject Title: ${document.getElementById("req-title").value.trim()}\nDetails: ${document.getElementById("req-details").value.trim()}`;
@@ -607,8 +642,18 @@
       if(ch==="whatsapp")window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(txt)}`,"_blank");
       else window.location.href=`mailto:${PARDHU_EMAIL}?subject=${encodeURIComponent("Project Enquiry from "+n)}&body=${encodeURIComponent(txt)}`;
     }
-    function copyText(v,msg){navigator.clipboard.writeText(v).then(()=>showToast(msg));}
+    function copyText(v,msg){
+      const done=()=>showToast(msg);
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(done).catch(()=>fallbackCopy(v,done));}
+      else fallbackCopy(v,done);
+    }
+    function fallbackCopy(v,cb){const t=document.createElement("textarea");t.value=v;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.select();try{document.execCommand("copy");cb();}catch(e){}document.body.removeChild(t);}
     function showToast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.remove("opacity-0","translate-y-4");setTimeout(()=>el.classList.add("opacity-0","translate-y-4"),2000);}
+
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeProjectModal();if(!finished||!currentOrder)closeCheckoutModal();toggleCart(false);}});
+
+    /* init (after everything is defined) */
+    renderProjects();renderKits();updateCartUI();
   </script>
 </body>
 </html>

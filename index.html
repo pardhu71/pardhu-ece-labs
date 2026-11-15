@@ -581,18 +581,62 @@
     function hideOrderBanner(){const b=document.getElementById("order-banner");if(b){b.classList.add("hidden");b.style.display="none";}}
 
     /* ---------- forms & helpers ---------- */
-    function sendCustomProject(ch){
+    async function sendCustomProject(ch){
       const f=document.getElementById("custom-form");if(!f.reportValidity())return;
-      const msg=`Hi Pardhu, I want to submit my own custom ECE project:\n\nName: ${document.getElementById("req-name").value.trim()}\nPhone: ${document.getElementById("req-phone").value.trim()}\nDomain: ${document.getElementById("req-domain").value}\nFormat: ${document.getElementById("req-type").value}\nProject Title: ${document.getElementById("req-title").value.trim()}\nDetails: ${document.getElementById("req-details").value.trim()}`;
-      if(ch==="whatsapp")window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank");
-      else window.location.href=`mailto:${PARDHU_EMAIL}?subject=${encodeURIComponent("Custom ECE Project: "+document.getElementById("req-title").value.trim())}&body=${encodeURIComponent(msg)}`;
+      const data={
+        kind:"custom_project",
+        name:document.getElementById("req-name").value.trim(),
+        phone:document.getElementById("req-phone").value.trim(),
+        domain:document.getElementById("req-domain").value,
+        format:document.getElementById("req-type").value,
+        title:document.getElementById("req-title").value.trim(),
+        details:document.getElementById("req-details").value.trim()
+      };
+      const msg=`Hi Pardhu, I want to submit my own custom ECE project:\n\nName: ${data.name}\nPhone: ${data.phone}\nDomain: ${data.domain}\nFormat: ${data.format}\nProject Title: ${data.title}\nDetails: ${data.details}`;
+      if(ch==="whatsapp"){
+        window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank","noopener");
+        return;
+      }
+      const btn=f.querySelector('button[onclick="sendCustomProject(\'email\')"]');
+      if(btn){btn.disabled=true;btn.textContent="Sending…";}
+      try{
+        const r=await fetch(`${API_BASE_URL}/api/send-enquiry`,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(data)
+        });
+        const result=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(result.error||"Email could not be sent. Please try WhatsApp.");
+        showToast("Project enquiry sent to Pardhu successfully.");
+        f.reset();
+      }catch(err){showToast(err.message||"Email failed. Please try WhatsApp.");}
+      finally{if(btn){btn.disabled=false;btn.textContent="Send via Email";}}
     }
-    function sendQuickContact(ch){
+    async function sendQuickContact(ch){
       const f=document.getElementById("contact-form");if(!f.reportValidity())return;
-      const n=document.getElementById("ct-name").value.trim(),p=document.getElementById("ct-phone").value.trim(),m=document.getElementById("ct-msg").value.trim();
-      const txt=`Hi Pardhu, message from ${n} (${p}):\n\n${m}`;
-      if(ch==="whatsapp")window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(txt)}`,"_blank");
-      else window.location.href=`mailto:${PARDHU_EMAIL}?subject=${encodeURIComponent("Project Enquiry from "+n)}&body=${encodeURIComponent(txt)}`;
+      const data={
+        kind:"contact",
+        name:document.getElementById("ct-name").value.trim(),
+        phone:document.getElementById("ct-phone").value.trim(),
+        message:document.getElementById("ct-msg").value.trim()
+      };
+      const txt=`Hi Pardhu, message from ${data.name} (${data.phone}):\n\n${data.message}`;
+      if(ch==="whatsapp"){
+        window.open(`https://wa.me/${PARDHU_WHATSAPP}?text=${encodeURIComponent(txt)}`,"_blank","noopener");
+        return;
+      }
+      const btn=f.querySelector('button[onclick="sendQuickContact(\'email\')"]');
+      if(btn){btn.disabled=true;btn.textContent="Sending…";}
+      try{
+        const r=await fetch(`${API_BASE_URL}/api/send-enquiry`,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(data)
+        });
+        const result=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(result.error||"Email could not be sent. Please try WhatsApp.");
+        showToast("Message sent to Pardhu successfully.");
+        f.reset();
+      }catch(err){showToast(err.message||"Email failed. Please try WhatsApp.");}
+      finally{if(btn){btn.disabled=false;btn.textContent="Send via Email";}}
     }
     function copyText(v,msg){
       const done=()=>showToast(msg);

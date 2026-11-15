@@ -133,7 +133,11 @@
       </div>
       <div class="flex flex-col justify-between gap-6 pb-8 dotted-b md:flex-row md:items-end">
         <div><p class="font-mono-tech text-[11px] font-bold uppercase tracking-[0.18em] text-[#66635E]">100 Projects Across 5 Domains</p><h2 class="font-editorial mt-2 text-4xl font-bold sm:text-5xl">Projects by <span class="italic font-semibold">Domain</span></h2><p class="mt-2 text-sm text-[#66635E]">20 projects in each ECE discipline. Looking for starter kits? <button type="button" onclick="switchPage('kits')" class="font-bold text-[#1A1A1A] underline">Open Project Kits →</button></p></div>
-        <div class="relative w-full md:w-80"><input id="search-input" type="text" placeholder="Search ESP32, Verilog, HFSS, PID, MRI..." oninput="resetAllLimitAndRender()" class="w-full rounded-full border border-[#1A1A1A]/20 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-[#1A1A1A] focus:outline-none" /><svg class="absolute left-3.5 top-3 h-4 w-4 text-[#9E9992]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+        <div class="relative w-full md:w-80">
+          <input id="search-input" type="text" placeholder="Search ESP32, Verilog, HFSS, PID, MRI..." oninput="resetAllLimitAndRender()" class="w-full rounded-full border border-[#1A1A1A]/20 bg-white py-2.5 pl-10 pr-9 text-sm focus:border-[#1A1A1A] focus:outline-none" />
+          <svg class="absolute left-3.5 top-3 h-4 w-4 text-[#9E9992]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <button type="button" id="clear-search" onclick="clearSearch('search-input',resetAllLimitAndRender)" class="hidden absolute right-3 top-2.5 text-xs font-bold text-[#66635E] hover:text-[#1A1A1A]">✕</button>
+        </div>
       </div>
       <div class="mt-8 flex flex-wrap gap-2.5" id="filter-tabs">
         <button type="button" onclick="setFilter('embedded')" data-filter="embedded" class="filter-btn rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9]">Embedded &amp; IoT (20)</button>
@@ -153,7 +157,11 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col justify-between gap-6 pb-8 dotted-b md:flex-row md:items-end">
         <div><p class="font-mono-tech text-[11px] font-bold uppercase tracking-[0.18em] text-[#66635E]">Standalone Hardware Store</p><h2 class="font-editorial mt-2 text-4xl font-bold sm:text-5xl">Project <span class="italic font-semibold">Kits</span> (10)</h2><p class="mt-2 max-w-2xl text-sm text-[#66635E]">Complete ESP32 IoT, Arduino, Sensor, RFID, Robotics &amp; Raspberry Pi starter kits with pinout guides and sample codes.</p></div>
-        <div class="relative w-full md:w-80"><input id="kits-search-input" type="text" placeholder="Search IoT kit, Arduino, 37 in 1..." oninput="renderKits()" class="w-full rounded-full border border-[#1A1A1A]/20 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-[#1A1A1A] focus:outline-none" /><svg class="absolute left-3.5 top-3 h-4 w-4 text-[#9E9992]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+        <div class="relative w-full md:w-80">
+          <input id="kits-search-input" type="text" placeholder="Search IoT kit, Arduino, 37 in 1..." oninput="renderKits()" class="w-full rounded-full border border-[#1A1A1A]/20 bg-white py-2.5 pl-10 pr-9 text-sm focus:border-[#1A1A1A] focus:outline-none" />
+          <svg class="absolute left-3.5 top-3 h-4 w-4 text-[#9E9992]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <button type="button" id="clear-kits-search" onclick="clearSearch('kits-search-input',renderKits)" class="hidden absolute right-3 top-2.5 text-xs font-bold text-[#66635E] hover:text-[#1A1A1A]">✕</button>
+        </div>
       </div>
       <div class="mt-8 flex flex-wrap gap-2.5">
         <button type="button" onclick="setKitFilter('all')" data-kit-filter="all" class="kit-filter-btn rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9]">All Kits (10)</button>
@@ -255,27 +263,38 @@
     </div>
   </div>
 
-  <!-- CHECKOUT MODAL -->
+  <!-- CHECKOUT MODAL (NO MOBILE DEEP-LINK, CLEAN QR + COPY NUMBER + COPY UPI) -->
   <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/45 p-4 backdrop-blur-sm" style="display:none">
     <div class="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#DFD8CC] bg-[#F4EFE9] p-6 shadow-2xl sm:p-8">
       <button type="button" onclick="closeCheckoutModal()" class="absolute right-4 top-4 rounded-full p-2 text-[#66635E] hover:bg-[#DFD8CC]/50"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
 
       <div id="checkout-step-1" class="checkout-step">
-        <h3 class="font-editorial text-3xl font-bold">Checkout</h3><p class="mt-1 text-xs text-[#66635E]">Enter your details to proceed to online payment.</p>
+        <h3 class="font-editorial text-3xl font-bold">Checkout</h3>
+        <p class="mt-1 text-xs text-[#66635E]">Enter your details to proceed to online payment.</p>
         <form onsubmit="proceedToPayment(event)" class="mt-6 space-y-4">
           <div><label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Student Full Name *</label><input id="pay-name" type="text" required placeholder="Your full name" class="inp-c" /></div>
           <div class="grid gap-3 sm:grid-cols-2"><div><label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Mobile / WhatsApp *</label><input id="pay-phone" type="tel" required placeholder="10-digit number" class="inp-c" /></div><div><label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Email *</label><input id="pay-email" type="email" required placeholder="student@example.com" class="inp-c" /></div></div>
-          <div class="card-c p-4"><div class="flex items-center justify-between text-sm"><span class="font-medium text-[#66635E]">Payable Total</span><span id="checkout-total" class="font-mono-tech text-lg font-bold">₹0</span></div><p class="mt-1 text-[11px] text-[#66635E]">Pay securely via PhonePe, Google Pay, Paytm, or any UPI app.</p></div>
+          <div class="card-c p-4"><div class="flex items-center justify-between text-sm"><span class="font-medium text-[#66635E]">Payable Total</span><span id="checkout-total" class="font-mono-tech text-lg font-bold">₹0</span></div><p class="mt-1 text-[11px] text-[#66635E]">Pay via PhonePe, Google Pay, Paytm, or any UPI app.</p></div>
           <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Continue to Online Payment</button>
         </form>
       </div>
 
       <div id="checkout-step-2" class="checkout-step hidden text-center" style="display:none">
         <span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3.5 py-1 font-mono-tech text-[11px] font-bold">Payable Amount: <span id="upi-amount-label">₹0</span></span>
-        <h3 class="font-editorial mt-3 text-3xl font-bold">Scan &amp; Pay via UPI</h3><p class="mt-1 text-xs text-[#66635E]">Scan the QR code below or pay directly to the UPI ID.</p>
+        <h3 class="font-editorial mt-3 text-3xl font-bold">Scan &amp; Pay via UPI</h3>
+        <p id="upi-items-label" class="mt-1 text-xs font-medium text-[#66635E]"></p>
         <div class="mx-auto mt-4 inline-block rounded-2xl border border-[#DFD8CC] bg-white p-4"><div id="upi-qr-code"></div></div>
-        <div class="mt-4 flex items-center justify-center gap-2 rounded-full border border-[#DFD8CC] bg-white px-4 py-2.5"><span class="font-mono-tech text-xs font-bold" id="display-upi-id">9494762055@ybl</span><button type="button" onclick="copyText(PARDHU_UPI_ID,'UPI ID copied!')" class="rounded-full bg-[#F4EFE9] px-3 py-1 text-[11px] font-bold hover:bg-[#DFD8CC]">Copy</button></div>
-        <a id="upi-deep-link" href="#" class="btn-l mt-3 w-full py-2.5 text-xs">Open UPI App on Mobile</a>
+        <div class="mt-4 space-y-2">
+          <div class="flex items-center justify-between rounded-full border border-[#DFD8CC] bg-white px-4 py-2">
+            <span class="text-[11px] font-bold text-[#66635E]">UPI ID: <strong class="font-mono-tech text-[#1A1A1A]" id="display-upi-id">9494762055@ybl</strong></span>
+            <button type="button" onclick="copyText(PARDHU_UPI_ID,'UPI ID copied!')" class="rounded-full bg-[#F4EFE9] px-3 py-1 text-[11px] font-bold hover:bg-[#DFD8CC]">Copy</button>
+          </div>
+          <div class="flex items-center justify-between rounded-full border border-[#DFD8CC] bg-white px-4 py-2">
+            <span class="text-[11px] font-bold text-[#66635E]">PhonePe / GPay: <strong class="font-mono-tech text-[#1A1A1A]">9494762055</strong></span>
+            <button type="button" onclick="copyText('9494762055','Mobile number copied!')" class="rounded-full bg-[#F4EFE9] px-3 py-1 text-[11px] font-bold hover:bg-[#DFD8CC]">Copy</button>
+          </div>
+        </div>
+        <p class="mt-3 text-[11px] text-[#66635E]">Scan the QR code, or copy the UPI ID / Mobile Number above to pay in PhonePe, GPay, or Paytm.</p>
         <button type="button" onclick="checkTransactionStatus()" class="btn-d mt-4 w-full py-3.5 text-xs uppercase tracking-wider">Check Payment Status →</button>
         <button type="button" onclick="showPaymentFailed('Payment was cancelled before completion.')" class="mt-2.5 w-full rounded-full border border-red-300 bg-white py-2.5 text-xs font-bold text-red-700 hover:bg-red-50">Payment Failed / Cancel</button>
       </div>
@@ -441,6 +460,8 @@
     try{const s=localStorage.getItem("pardhu_ece_cart");cart=s?JSON.parse(s):[];if(!Array.isArray(cart))cart=[];}catch(e){cart=[];}
     renderProjects();renderKits();updateCartUI();
 
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeProjectModal();closeCheckoutModal();toggleCart(false);}});
+
     function switchPage(page,domainFilter=null){
       activePage=page;
       document.querySelectorAll(".page-view").forEach(s=>{s.classList.add("hidden");s.style.display="none";});
@@ -454,10 +475,12 @@
     function resetAllLimitAndRender(){allDomainLimit=24;renderProjects();}
     function loadMoreProjects(){allDomainLimit+=24;renderProjects();}
     function setKitFilter(f){activeKitFilter=f;document.querySelectorAll(".kit-filter-btn").forEach(b=>{b.className=b.dataset.kitFilter===f?"kit-filter-btn rounded-full bg-[#1A1A1A] px-5 py-2.5 text-xs font-bold text-[#F4EFE9]":"kit-filter-btn rounded-full border border-[#1A1A1A]/20 bg-white px-5 py-2.5 text-xs font-bold text-[#66635E] hover:border-[#1A1A1A]";});renderKits();}
+    function clearSearch(id,fn){const el=document.getElementById(id);if(el){el.value="";fn();}}
 
     function renderProjects(){
-      const grid=document.getElementById("projects-grid"),wrap=document.getElementById("load-more-wrap"),s=document.getElementById("search-input");
+      const grid=document.getElementById("projects-grid"),wrap=document.getElementById("load-more-wrap"),s=document.getElementById("search-input"),clr=document.getElementById("clear-search");
       const q=s?s.value.trim().toLowerCase():"";
+      if(clr)clr.classList.toggle("hidden",!q);
       const flt=projects.filter(p=>(activeFilter==="all"||p.domain===activeFilter)&&(!q||p.title.toLowerCase().includes(q)||p.summary.toLowerCase().includes(q)||p.components.some(c=>c.toLowerCase().includes(q))));
       if(!flt.length){wrap.classList.add("hidden");wrap.style.display="none";grid.innerHTML=`<div class="col-span-full card-c p-10 text-center text-sm text-[#66635E]">No projects matched. <button type="button" onclick="switchPage('custom')" class="font-bold text-[#1A1A1A] underline">Send your own idea!</button></div>`;return;}
       const slice=activeFilter==="all"&&!q?flt.slice(0,allDomainLimit):flt,more=activeFilter==="all"&&!q&&flt.length>allDomainLimit;
@@ -465,8 +488,9 @@
       grid.innerHTML=slice.map(buildCardHTML).join("");
     }
     function renderKits(){
-      const grid=document.getElementById("kits-grid"),s=document.getElementById("kits-search-input");
+      const grid=document.getElementById("kits-grid"),s=document.getElementById("kits-search-input"),clr=document.getElementById("clear-kits-search");
       const q=s?s.value.trim().toLowerCase():"";
+      if(clr)clr.classList.toggle("hidden",!q);
       const flt=projectKits.filter(k=>(activeKitFilter==="all"||k.domain===activeKitFilter)&&(!q||k.title.toLowerCase().includes(q)||k.summary.toLowerCase().includes(q)||k.components.some(c=>c.toLowerCase().includes(q))));
       grid.innerHTML=flt.length?flt.map(buildCardHTML).join(""):`<div class="col-span-full card-c p-10 text-center text-sm text-[#66635E]">No project kits matched your search.</div>`;
     }
@@ -519,7 +543,7 @@
       if(!currentOrderData)return;
       const upi=`upi://pay?pa=${encodeURIComponent(PARDHU_UPI_ID)}&pn=${encodeURIComponent("Pardhu ECE Labs")}&cu=INR`;
       document.getElementById("upi-amount-label").textContent="₹"+currentOrderData.totalAmount.toLocaleString("en-IN");
-      document.getElementById("upi-deep-link").href=upi;
+      document.getElementById("upi-items-label").textContent="Order: "+currentOrderData.itemSummary;
       const qr=document.getElementById("upi-qr-code");qr.innerHTML="";
       if(typeof QRCode!=="undefined")new QRCode(qr,{text:upi,width:180,height:180,colorDark:"#1A1A1A",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M});
       autoNotifyPardhu("PENDING_UPI");

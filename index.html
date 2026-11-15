@@ -458,7 +458,7 @@
     const findItemById=id=>[...projects,...projectKits].find(i=>i.id===id);
     const money=n=>"₹"+Number(n).toLocaleString("en-IN");
 
-    try{const s=localStorage.getItem("pardhu_ece_cart");const raw=s?JSON.parse(s):[];cart=Array.isArray(raw)?raw.filter(c=>c&&findItemById(c.id)).map(c=>({id:c.id,qty:Math.max(1,parseInt(c.qty)||1)})):[];}catch(e){cart=[];}
+    try{const s=localStorage.getItem("pardhu_ece_cart");const raw=s?JSON.parse(s):[];cart=Array.isArray(raw)?raw.filter(c=>c&&findItemById(c.id)).map(c=>({id:c.id,qty:1})):[];}catch(e){cart=[];}
 
     /* Cart lines with trusted prices from the catalog */
     function cartLines(){return cart.map(c=>{const it=findItemById(c.id);return it?{id:it.id,title:it.title,domainLabel:it.domainLabel,price:it.price,qty:c.qty}:null;}).filter(Boolean);}
@@ -512,19 +512,17 @@
     function addToCart(id){
       const item=findItemById(id);if(!item)return;
       const ex=cart.find(c=>c.id===id);
-      if(ex){
-        if(!id.startsWith("kit-")){showToast("Project already in cart");return;}   // one deliverable per project
-        ex.qty++;
-      }else cart.push({id,qty:1});
+      if(ex){showToast("Only one quantity of each item can be added");return;}
+      cart.push({id,qty:1});
       saveCart();showToast("Added to cart!");
     }
-    function updateQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;i.qty+=d;if(i.qty<=0)cart=cart.filter(c=>c.id!==id);saveCart();}
+    function updateQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;if(d<0)cart=cart.filter(c=>c.id!==id);saveCart();}
     function saveCart(){try{localStorage.setItem("pardhu_ece_cart",JSON.stringify(cart));}catch(e){}updateCartUI();}
     function updateCartUI(){
       const cnt=document.getElementById("cart-count"),items=document.getElementById("cart-items"),tot=document.getElementById("cart-total"),btn=document.getElementById("checkout-btn");
       const lines=cartLines();
       cnt.textContent=lines.reduce((s,i)=>s+i.qty,0);tot.textContent=money(cartTotal());btn.disabled=!lines.length;
-      items.innerHTML=lines.length?lines.map(i=>`<div class="card-c p-4"><div class="flex items-start justify-between gap-3"><div><span class="font-mono-tech text-[10px] font-bold uppercase text-[#66635E]">${i.domainLabel}</span><h4 class="mt-0.5 text-sm font-bold">${i.title}</h4></div><span class="font-mono-tech text-sm font-bold">${money(i.price*i.qty)}</span></div><div class="mt-3 flex items-center justify-between"><span class="text-xs text-[#66635E]">${money(i.price)} each</span><div class="flex items-center gap-2"><button type="button" onclick="updateQty('${i.id}',-1)" aria-label="Decrease quantity" class="btn-l h-7 w-7 text-sm">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span>${i.id.startsWith("kit-")?`<button type="button" onclick="updateQty('${i.id}',1)" aria-label="Increase quantity" class="btn-l h-7 w-7 text-sm">+</button>`:`<span class="w-7"></span>`}</div></div></div>`).join(""):`<div class="py-12 text-center text-sm text-[#66635E]">Your cart is empty. Browse Projects, Project Kits, or send your own idea.</div>`;
+      items.innerHTML=lines.length?lines.map(i=>`<div class="card-c p-4"><div class="flex items-start justify-between gap-3"><div><span class="font-mono-tech text-[10px] font-bold uppercase text-[#66635E]">${i.domainLabel}</span><h4 class="mt-0.5 text-sm font-bold">${i.title}</h4></div><span class="font-mono-tech text-sm font-bold">${money(i.price*i.qty)}</span></div><div class="mt-3 flex items-center justify-between"><span class="text-xs text-[#66635E]">${money(i.price)} each</span><div class="flex items-center gap-2"><button type="button" onclick="updateQty('${i.id}',-1)" aria-label="Decrease quantity" class="btn-l h-7 w-7 text-sm">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span><span class="w-7"></span></div></div></div>`).join(""):`<div class="py-12 text-center text-sm text-[#66635E]">Your cart is empty. Browse Projects, Project Kits, or send your own idea.</div>`;
     }
     function toggleCart(open){const d=document.getElementById("cart-drawer");d.classList.toggle("hidden",!open);d.style.display=open?"block":"none";}
 

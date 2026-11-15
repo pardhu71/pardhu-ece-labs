@@ -276,29 +276,32 @@
     </div>
   </div>
 
-  <!-- CHECKOUT MODAL: details → QR only → result (auto-returns to website) -->
+  <!-- CHECKOUT MODAL: details → UPI payment link + SMS → result -->
   <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/45 p-4 backdrop-blur-sm" style="display:none" role="dialog" aria-modal="true">
     <div class="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#DFD8CC] bg-[#F4EFE9] p-6 shadow-2xl sm:p-8">
       <button type="button" id="checkout-close" onclick="closeCheckoutModal()" aria-label="Close" class="absolute right-4 top-4 rounded-full p-2 text-[#66635E] hover:bg-[#DFD8CC]/50"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
 
       <!-- Step 1: customer details -->
       <div id="checkout-step-1" class="checkout-step">
-        <h3 class="font-editorial text-3xl font-bold">Checkout</h3><p class="mt-1 text-xs text-[#66635E]">Enter your details. After payment is verified by Razorpay, an order confirmation will be emailed to you.</p>
+        <h3 class="font-editorial text-3xl font-bold">Checkout</h3><p class="mt-1 text-xs text-[#66635E]">Enter your details. Razorpay will send a UPI payment link by SMS. Your order is confirmed only after payment verification.</p>
         <form onsubmit="proceedToPayment(event)" class="mt-6 space-y-4">
           <div><label for="pay-name" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Student Full Name *</label><input id="pay-name" type="text" required placeholder="Your full name" class="inp-c" /></div>
           <div class="grid gap-3 sm:grid-cols-2"><div><label for="pay-phone" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Mobile / WhatsApp *</label><input id="pay-phone" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" placeholder="10-digit number" class="inp-c" /></div><div><label for="pay-email" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#66635E]">Email *</label><input id="pay-email" type="email" required placeholder="student@example.com" class="inp-c" /></div></div>
           <div class="card-c p-4"><div class="flex items-center justify-between text-sm"><span class="font-medium text-[#66635E]">Payable Total</span><span id="checkout-total" class="font-mono-tech text-lg font-bold">₹0</span></div></div>
-          <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Show Payment QR</button>
+          <button type="submit" class="btn-d w-full py-3.5 text-xs uppercase tracking-wider">Create UPI Payment Link</button>
         </form>
       </div>
 
-      <!-- Step 2: QR ONLY -->
+      <!-- Step 2: UPI payment link; Razorpay sends the same link by SMS -->
       <div id="checkout-step-2" class="checkout-step hidden text-center" style="display:none">
         <span class="rounded-full border border-[#1A1A1A]/15 bg-white px-3.5 py-1 font-mono-tech text-[11px] font-bold">Pay exactly <span id="upi-amount-label">₹0</span></span>
-        <h3 class="font-editorial mt-3 text-3xl font-bold">Scan &amp; Pay</h3>
-        <div class="mx-auto mt-4 inline-block rounded-2xl border border-[#DFD8CC] bg-white p-4"><div id="upi-qr-code"></div></div>
-        <p class="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#66635E]"><span class="wait-dot"></span><span id="qr-status">Waiting for payment…</span><span id="qr-timer" class="font-mono-tech"></span></p>
-
+        <h3 class="font-editorial mt-3 text-3xl font-bold">Pay using any UPI app</h3>
+        <p class="mt-2 text-sm text-[#66635E]">Razorpay has sent a secure payment link to your mobile number by SMS. Open it and choose your UPI app.</p>
+        <a id="payment-link-open" href="#" target="_blank" rel="noopener noreferrer" class="btn-d mt-5 inline-flex w-full items-center justify-center py-3.5 text-xs uppercase tracking-wider">Open UPI Payment Page</a>
+        <button type="button" onclick="copyPaymentLink()" class="btn-l mt-3 w-full py-3 text-xs uppercase tracking-wider">Copy payment link</button>
+        <p id="sms-status" class="mt-3 text-xs font-bold text-[#15803D]">Payment link SMS requested from Razorpay.</p>
+        <p class="mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#66635E]"><span class="wait-dot"></span><span id="qr-status">Waiting for Razorpay payment confirmation…</span><span id="qr-timer" class="font-mono-tech"></span></p>
+        <p class="mt-3 text-[11px] text-[#66635E]">Keep this page open after paying. Your order is confirmed only after Razorpay verifies payment.</p>
       </div>
 
       <!-- Step 3: result, then automatic return to website -->
@@ -319,7 +322,7 @@
     const PARDHU_WHATSAPP="919494762055";
     // Set this to your deployed Cloudflare Worker URL. Never put Razorpay secrets here.
     const API_BASE_URL="https://pardhu-ece-labs-payments.pardhu-ece-labs.workers.dev";
-    const QR_TIMEOUT_MS=15*60*1000;
+    const QR_TIMEOUT_MS=30*60*1000;
     const POLL_MS=5000;
     const RETURN_DELAY_MS=3500;
     /* ========================================= */
@@ -538,7 +541,7 @@
     }
     function showCheckoutStep(id){document.querySelectorAll(".checkout-step").forEach(e=>{e.classList.add("hidden");e.style.display="none";});const el=document.getElementById(id);if(el){el.classList.remove("hidden");el.style.display="block";}}
 
-    /* Create a single-use, fixed-amount UPI QR on the server. The server re-prices item IDs. */
+    /* Create a fixed-amount UPI Payment Link on the server; Razorpay sends it by SMS. */
     async function proceedToPayment(e){
       e.preventDefault();
       const lines=cartLines();if(!lines.length)return;
@@ -548,28 +551,32 @@
         email:document.getElementById("pay-email").value.trim()
       };
       const submit=e.submitter;
-      if(submit){submit.disabled=true;submit.textContent="Creating secure QR…";}
+      if(submit){submit.disabled=true;submit.textContent="Creating payment link…";}
       try{
-        const response=await fetch(`${API_BASE_URL}/api/create-qr`,{
+        const response=await fetch(`${API_BASE_URL}/api/create-payment-link`,{
           method:"POST",headers:{"Content-Type":"application/json"},
           body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty}))})
         });
         const data=await response.json();
-        if(!response.ok)throw new Error(data.error||"Could not create payment QR.");
-        currentOrder={ref:data.ref,total:data.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email,qrCodeId:data.qr_code_id};
-        finished=false;showQrStep(data.image_url);
+        if(!response.ok)throw new Error(data.error||"Could not create payment link.");
+        currentOrder={ref:data.ref,total:data.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email,paymentUrl:data.payment_url};
+        finished=false;showPaymentLinkStep(data.payment_url);
       }catch(err){showToast(err.message||"Payment setup failed. Please try again.");}
-      finally{if(submit){submit.disabled=false;submit.textContent="Show Payment QR";}}
+      finally{if(submit){submit.disabled=false;submit.textContent="Create UPI Payment Link";}}
     }
 
-    function showQrStep(imageUrl){
+    function showPaymentLinkStep(paymentUrl){
       const o=currentOrder;
       document.getElementById("upi-amount-label").textContent=money(o.total);
-      const qr=document.getElementById("upi-qr-code");qr.innerHTML="";
-      if(typeof QRCode==="undefined")throw new Error("QR display library did not load. Refresh and try again.");
-      new QRCode(qr,{text:imageUrl,width:240,height:240,colorDark:"#1A1A1A",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M});
+      const link=document.getElementById("payment-link-open");link.href=paymentUrl;
+      document.getElementById("sms-status").textContent=`Razorpay has been asked to send the payment link by SMS to ${o.phone}.`;
       document.getElementById("qr-status").textContent="Waiting for Razorpay payment confirmation…";
       showCheckoutStep("checkout-step-2");startStatusWatch();
+    }
+    async function copyPaymentLink(){
+      if(!currentOrder?.paymentUrl)return;
+      try{await navigator.clipboard.writeText(currentOrder.paymentUrl);showToast("Payment link copied!");}
+      catch(_){showToast("Open the payment page using the button above.");}
     }
 
     function startStatusWatch(){
@@ -583,8 +590,7 @@
       const poll=async()=>{
         if(finished||!currentOrder)return;
         if(Date.now()-started>QR_TIMEOUT_MS){
-          try{await fetch(`${API_BASE_URL}/api/expire-qr`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref})});}catch(_){}
-          finishPayment("failed","The QR code expired before Razorpay confirmed payment.");return;
+          finishPayment("failed","The payment link expired before Razorpay confirmed payment.");return;
         }
         try{
           const r=await fetch(`${API_BASE_URL}/api/status?ref=${encodeURIComponent(ref)}`,{cache:"no-store"});
@@ -597,7 +603,7 @@
     }
     function stopWatch(){clearInterval(pollTimer);clearInterval(timerTick);pollTimer=timerTick=null;}
 
-    /* A paid result is displayed only after the backend verifies a captured payment directly with Razorpay APIs. */
+    /* A paid result is displayed only after the backend verifies the Razorpay Payment Link is paid for the exact INR amount. */
     function finishPayment(status,reason="",paymentId=""){
       if(finished||!currentOrder)return;
       finished=true;stopWatch();

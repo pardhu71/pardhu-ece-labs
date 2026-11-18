@@ -374,13 +374,14 @@
   <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#0F172A]/40 p-4 backdrop-blur-sm" style="display:none" role="dialog" aria-modal="true">
     <div class="relative w-full max-w-sm rounded-xl border border-[#4F46E5] bg-white p-6 shadow-2xl">
       <button type="button" onclick="closeAuth()" aria-label="Close" class="mono absolute right-3 top-3 rounded border border-[#DDE2EE] px-2 py-0.5 text-xs font-bold text-[#0F172A]">✕</button>
-      <h3 id="auth-title" class="text-2xl font-bold text-[#0F172A]">Sign in</h3>
-      <div class="mt-4 flex rounded-lg border border-[#DDE2EE] p-0.5"><button type="button" id="tab-signin" onclick="setAuthMode('signin')" class="mono flex-1 rounded-md px-3 py-1.5 text-xs font-bold">Sign in</button><button type="button" id="tab-signup" onclick="setAuthMode('signup')" class="mono flex-1 rounded-md px-3 py-1.5 text-xs font-bold">Create account</button></div>
+      <h3 id="auth-title" class="text-2xl font-bold text-[#0F172A]">Sign in</h3><button type="button" id="auth-back" onclick="setAuthMode('signin')" class="mono mt-1 text-xs font-bold text-[#5B6478] underline" style="display:none">← Back to sign in</button>
+      <div id="auth-tabs" class="mt-4 flex rounded-lg border border-[#DDE2EE] p-0.5"><button type="button" id="tab-signin" onclick="setAuthMode('signin')" class="mono flex-1 rounded-md px-3 py-1.5 text-xs font-bold">Sign in</button><button type="button" id="tab-signup" onclick="setAuthMode('signup')" class="mono flex-1 rounded-md px-3 py-1.5 text-xs font-bold">Create account</button></div>
       <form onsubmit="submitAuth(event)" class="mt-4 space-y-3" novalidate>
         <input id="auth-name" type="text" placeholder="Full name" autocomplete="name" class="lab-inp" style="display:none" />
         <input id="auth-email" type="email" placeholder="Email" autocomplete="email" class="lab-inp" />
         <input id="auth-pass" type="password" placeholder="Password (min 8 characters)" autocomplete="current-password" class="lab-inp" />
         <p id="auth-err" class="mono text-xs font-bold text-[#DC2626]" role="alert"></p>
+        <button type="button" id="auth-forgot" onclick="setAuthMode('forgot')" class="mono text-xs font-bold text-[#4F46E5] underline" style="display:block">Forgot password?</button>
         <button type="submit" id="auth-submit" class="btn-gold w-full py-3 text-xs uppercase tracking-wider">Sign in →</button>
       </form>
     </div>
@@ -1032,28 +1033,40 @@ function renderAuthUI(){const b=document.getElementById("auth-btn"),u=EVAUTH.use
 function authBtnClick(){if(EVAUTH.user)switchPage("orders");else openAuth("signin");}
 function openAuth(mode,after){authAfter=after||null;setAuthMode(mode||"signin");document.getElementById("auth-err").textContent="";const m=document.getElementById("auth-modal");m.classList.remove("hidden");m.classList.add("flex");m.style.display="flex";setTimeout(function(){document.getElementById("auth-email").focus();},50);}
 function closeAuth(){const m=document.getElementById("auth-modal");m.classList.add("hidden");m.classList.remove("flex");m.style.display="none";authAfter=null;}
-function setAuthMode(m){authMode=m;const up=m==="signup";
-  document.getElementById("auth-title").textContent=up?"Create account":"Sign in";
-  document.getElementById("auth-submit").textContent=up?"Create account →":"Sign in →";
+function setAuthMode(m){authMode=m;const up=m==="signup",fg=m==="forgot",rs=m==="reset",si=m==="signin";
+  document.getElementById("auth-title").textContent=up?"Create account":fg?"Forgot password":rs?"Set new password":"Sign in";
+  document.getElementById("auth-submit").textContent=up?"Create account →":fg?"Send reset link →":rs?"Save new password →":"Sign in →";
   document.getElementById("auth-name").style.display=up?"block":"none";
-  document.getElementById("auth-pass").autocomplete=up?"new-password":"current-password";
+  document.getElementById("auth-email").style.display=rs?"none":"block";
+  document.getElementById("auth-pass").style.display=fg?"none":"block";
+  document.getElementById("auth-pass").placeholder=rs?"New password (min 8 characters)":"Password (min 8 characters)";
+  document.getElementById("auth-pass").autocomplete=(up||rs)?"new-password":"current-password";
+  document.getElementById("auth-forgot").style.display=si?"block":"none";
+  document.getElementById("auth-tabs").style.display=(fg||rs)?"none":"flex";document.getElementById("auth-back").style.display=(fg||rs)?"block":"none";
+  document.getElementById("auth-err").textContent="";
   [["tab-signin",!up],["tab-signup",up]].forEach(function(x){const e=document.getElementById(x[0]);e.style.background=x[1]?"#4F46E5":"transparent";e.style.color=x[1]?"#fff":"#5B6478";});}
+let resetToken=null;
 async function submitAuth(e){
-  e.preventDefault();const err=document.getElementById("auth-err"),btn=document.getElementById("auth-submit");err.textContent="";
+  e.preventDefault();const err=document.getElementById("auth-err"),btn=document.getElementById("auth-submit");err.style.color="#DC2626";err.textContent="";
   const name=document.getElementById("auth-name").value.trim(),email=document.getElementById("auth-email").value.trim().toLowerCase(),password=document.getElementById("auth-pass").value;
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){err.textContent="Enter a valid email.";return;}
-  if(password.length<8){err.textContent="Password must be at least 8 characters.";return;}
+  if(authMode!=="reset"&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){err.textContent="Enter a valid email.";return;}
+  if(authMode!=="forgot"&&password.length<8){err.textContent="Password must be at least 8 characters.";return;}
   if(authMode==="signup"&&name.length<2){err.textContent="Enter your name.";return;}
+  const path={signin:"login",signup:"signup",forgot:"forgot",reset:"reset"}[authMode];
+  const payload=authMode==="forgot"?{email:email,base:location.origin+location.pathname}:authMode==="reset"?{token:resetToken,password:password}:{name:name,email:email,password:password};
   btn.disabled=true;const old=btn.textContent;btn.textContent="Please wait…";
   try{
-    const r=await fetch(API_BASE_URL+"/api/auth/"+authMode,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,password})});
+    const r=await fetch(API_BASE_URL+"/api/auth/"+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     const d=await r.json().catch(function(){return{};});
     if(!r.ok)throw new Error(d.error||"Something went wrong. Try again.");
-    EVAUTH.set(d.token,d.user);renderAuthUI();const next=authAfter;closeAuth();showToast("Welcome, "+String(d.user.name||d.user.email).split(" ")[0]+" ✓");
+    if(authMode==="forgot"){err.style.color="#0E9F7E";err.textContent=d.message||"Check your email for the reset link.";return;}
+    EVAUTH.set(d.token,d.user);renderAuthUI();const next=authAfter;closeAuth();showToast((authMode==="reset"?"Password updated. Welcome, ":"Welcome, ")+String(d.user.name||d.user.email).split(" ")[0]+" ✓");
+    if(authMode==="reset"){resetToken=null;history.replaceState(null,"",location.pathname);}
     document.getElementById("auth-pass").value="";if(next)setTimeout(next,250);
   }catch(ex){err.textContent=ex.message||"Network error.";}
   finally{btn.disabled=false;btn.textContent=old;}
 }
+(function(){const m=location.search.match(/[?&]reset=([a-f0-9]{64})/);if(m){resetToken=m[1];window.addEventListener("load",function(){openAuth("reset");});}})();
 function signOut(){EVAUTH.clear();renderAuthUI();switchPage("home");showToast("Signed out");}
 function prefillCheckout(){const u=EVAUTH.user;if(!u)return;const n=document.getElementById("pay-name"),m=document.getElementById("pay-email");if(n&&!n.value)n.value=u.name||"";if(m&&!m.value)m.value=u.email||"";}
 async function loadOrders(silent){

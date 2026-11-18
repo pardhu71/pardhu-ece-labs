@@ -155,10 +155,10 @@
           <button type="button" onclick="switchPage('contact')" data-nav="contact" class="nav-link pb-1 text-[#5B6478] transition hover:text-[#4F46E5]">Contact</button>
         </nav>
 
-        <button type="button" id="cart-btn" onclick="toggleCart(true)" class="btn-dark gap-2.5 px-5 py-2.5 text-sm">
+        <div class="flex items-center gap-2"><button type="button" id="auth-btn" onclick="authBtnClick()" class="btn-dark gap-2 px-4 py-2.5 text-sm">Sign in</button><button type="button" id="cart-btn" onclick="toggleCart(true)" class="btn-dark gap-2.5 px-5 py-2.5 text-sm">
           <span>Cart</span>
           <span id="cart-count" class="mono flex h-6 min-w-[24px] items-center justify-center rounded bg-[#4F46E5] px-1.5 text-xs font-bold text-white">0</span>
-        </button>
+        </button></div>
       </div>
 
       <div class="flex justify-around border-t border-[#E6E9F2] bg-[#FAFBFE] py-2.5 text-sm font-bold lg:hidden">
@@ -328,6 +328,13 @@
     </main>
 
     <!-- PAGE 5: CONTACT -->
+    <main id="page-orders" class="page-view hidden flex-1 py-10 sm:py-14" style="display:none">
+      <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="flex items-end justify-between gap-3 border-b border-[#E6E9F2] pb-6"><div><h2 class="text-4xl font-bold tracking-tight text-[#0F172A] sm:text-5xl">My Orders</h2><p id="orders-who" class="mono mt-2 text-xs text-[#5B6478]"></p></div><button type="button" onclick="signOut()" class="btn-dark px-4 py-2 text-xs">Sign out</button></div>
+        <div id="orders-list" class="mt-7 space-y-4"></div>
+      </div>
+    </main>
+
     <main id="page-contact" class="page-view hidden flex-1 py-10 sm:py-14" style="display:none">
       <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="border-b border-[#E6E9F2] pb-6 text-center"><h2 class="text-4xl font-bold tracking-tight text-[#0F172A] sm:text-5xl">Say hello.</h2></div>
@@ -361,6 +368,21 @@
     <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[#4F46E5] bg-[#FFFFFF] p-6 shadow-2xl sm:p-8">
       <button type="button" onclick="closeProjectModal()" aria-label="Close" class="mono absolute right-4 top-4 rounded border border-[#DDE2EE] bg-[#F3F5FB] px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:border-[#4F46E5]">✕</button>
       <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#0F172A]/40 p-4 backdrop-blur-sm" style="display:none" role="dialog" aria-modal="true">
+    <div class="relative w-full max-w-sm rounded-xl border border-[#4F46E5] bg-white p-6 shadow-2xl">
+      <button type="button" onclick="closeAuth()" aria-label="Close" class="mono absolute right-3 top-3 rounded border border-[#DDE2EE] px-2 py-0.5 text-xs font-bold text-[#0F172A]">✕</button>
+      <h3 id="auth-title" class="text-2xl font-bold text-[#0F172A]">Sign in</h3>
+      <div class="mt-4 flex rounded-lg border border-[#DDE2EE] p-0.5"><button type="button" id="tab-signin" onclick="setAuthMode('signin')" class="mono flex-1 rounded-md px-3 py-1.5 text-xs font-bold">Sign in</button><button type="button" id="tab-signup" onclick="setAuthMode('signup')" class="mono flex-1 rounded-md px-3 py-1.5 text-xs font-bold">Create account</button></div>
+      <form onsubmit="submitAuth(event)" class="mt-4 space-y-3" novalidate>
+        <input id="auth-name" type="text" placeholder="Full name" autocomplete="name" class="lab-inp" style="display:none" />
+        <input id="auth-email" type="email" placeholder="Email" autocomplete="email" class="lab-inp" />
+        <input id="auth-pass" type="password" placeholder="Password (min 8 characters)" autocomplete="current-password" class="lab-inp" />
+        <p id="auth-err" class="mono text-xs font-bold text-[#DC2626]" role="alert"></p>
+        <button type="submit" id="auth-submit" class="btn-gold w-full py-3 text-xs uppercase tracking-wider">Sign in →</button>
+      </form>
     </div>
   </div>
 
@@ -714,7 +736,7 @@
         const t=document.getElementById("page-"+page);if(t){t.classList.remove("hidden");t.style.display="block";}
         document.querySelectorAll(".nav-link").forEach(l=>{const c=l.dataset.nav===page;l.classList.toggle("text-[#0F172A]",c);l.classList.toggle("text-[#5B6478]",!c);l.classList.toggle("border-b-2",c);l.classList.toggle("border-[#4F46E5]",c);});
         if(page==="projects"){if(domainFilter)setFilter(domainFilter);else renderProjects();}
-        else if(page==="kits"){renderKits();}
+        else if(page==="kits"){renderKits();}else if(page==="orders"){loadOrders();}
         if(t){t.classList.remove("page-enter");void t.offsetWidth;t.classList.add("page-enter");}
         window.scrollTo({top:0,behavior:"smooth"});
       };
@@ -796,7 +818,7 @@
     function clearCart(){if(!cart.length)return;cart=[];saveCart();showToast("Cart cleared");}
     function toggleCart(open){const d=document.getElementById("cart-drawer");d.classList.toggle("hidden",!open);d.style.display=open?"block":"none";}
 
-    function openCheckoutModal(){if(!cartLines().length)return;toggleCart(false);stopWatch();clearTimeout(returnTimer);showCheckoutStep("checkout-step-1");document.getElementById("checkout-total").textContent=money(cartTotal());const m=document.getElementById("checkout-modal");m.classList.remove("hidden");m.classList.add("flex");m.style.display="flex";}
+    function openCheckoutModal(){if(!cartLines().length)return;if(!EVAUTH.user){toggleCart(false);openAuth("signin",openCheckoutModal);showToast("Sign in to place your order");return;}toggleCart(false);stopWatch();clearTimeout(returnTimer);showCheckoutStep("checkout-step-1");prefillCheckout();document.getElementById("checkout-total").textContent=money(cartTotal());const m=document.getElementById("checkout-modal");m.classList.remove("hidden");m.classList.add("flex");m.style.display="flex";}
     function closeCheckoutModal(){stopWatch();const m=document.getElementById("checkout-modal");m.classList.add("hidden");m.classList.remove("flex");m.style.display="none";}
     function showCheckoutStep(id){document.querySelectorAll(".checkout-step").forEach(e=>{e.classList.add("hidden");e.style.display="none";});const el=document.getElementById(id);if(el){el.classList.remove("hidden");el.style.display="block";}}
     function getSavedCustomProject(){try{const p=JSON.parse(sessionStorage.getItem("pel_custom_project")||"null");if(!p||!p.title||!p.details)return null;return{domain:String(p.domain||"").slice(0,100),format:String(p.format||"").slice(0,100),title:String(p.title||"").slice(0,180),details:String(p.details||"").slice(0,5000)};}catch(_){return null;}}
@@ -807,7 +829,7 @@
       const customer={name:document.getElementById("pay-name").value.trim(),phone:document.getElementById("pay-phone").value.trim(),email:document.getElementById("pay-email").value.trim()};
       const submit=e.submitter;if(submit){submit.disabled=true;submit.textContent="Opening Razorpay…";}
       try{
-        const r=await fetch(`${API_BASE_URL}/api/create-order`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty})),customProject:getSavedCustomProject()})});
+        const r=await fetch(`${API_BASE_URL}/api/create-order`,{method:"POST",headers:{"Content-Type":"application/json",...authHeaders()},body:JSON.stringify({customer,items:lines.map(x=>({id:x.id,qty:x.qty})),customProject:getSavedCustomProject()})});
         const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not create order.");
         currentOrder={ref:d.ref,orderId:d.order_id,total:d.amount/100,lines,name:customer.name,phone:customer.phone,email:customer.email};finished=false;
         lastRazorpayData={key:d.key_id,amount:d.amount,currency:"INR",name:"Electroverse",description:`Order ${d.ref}`,order_id:d.order_id,prefill:{name:d.name,email:d.email,contact:d.contact},theme:{color:"#4F46E5"}};
@@ -835,7 +857,7 @@
     function stopWatch(){clearInterval(pollTimer);pollTimer=null;}
 
     function finishPayment(status,reason=""){
-      if(finished||!currentOrder)return;finished=true;stopWatch();
+      if(finished||!currentOrder)return;finished=true;stopWatch();if(status==="paid")setTimeout(function(){loadOrders(true);},1500);
       const o=currentOrder,ok=status==="paid",icon=document.getElementById("result-icon");
       icon.textContent=ok?"✓":"✕";icon.style.background=ok?"#0E9F7E":"#DC2626";
       document.getElementById("result-title").textContent=ok?"Payment Verified":"Payment Not Completed";
@@ -981,7 +1003,7 @@
   if(fine&&!rm){
     var cur=scrollY,target=scrollY,raf=null;
     var maxY=function(){return document.documentElement.scrollHeight-innerHeight;};
-    var overlay=function(){return ["cart-drawer","checkout-modal","project-modal"].some(function(id){var el=document.getElementById(id);return el&&getComputedStyle(el).display!=="none";});};
+    var overlay=function(){return ["cart-drawer","checkout-modal","project-modal","auth-modal"].some(function(id){var el=document.getElementById(id);return el&&getComputedStyle(el).display!=="none";});};
     var inner=function(n){while(n&&n!==document.body&&n!==document.documentElement){if(n.nodeType===1){var o=getComputedStyle(n).overflowY;if((o==="auto"||o==="scroll")&&n.scrollHeight>n.clientHeight+2)return true;}n=n.parentNode;}return false;};
     var loop=function(){cur+=(target-cur)*.11;if(Math.abs(target-cur)<.5){cur=target;scrollTo(0,cur);raf=null;return;}scrollTo(0,cur);raf=requestAnimationFrame(loop);};
     document.documentElement.classList.remove("scroll-smooth");
@@ -994,6 +1016,65 @@
     addEventListener("scroll",function(){if(!raf){cur=target=scrollY;}},{passive:true});
   }
 })();
+</script>
+
+<script>
+const EVAUTH={
+  get token(){try{return localStorage.getItem("ev_token");}catch(e){return null;}},
+  get user(){try{return JSON.parse(localStorage.getItem("ev_user")||"null");}catch(e){return null;}},
+  set(t,u){try{localStorage.setItem("ev_token",t);localStorage.setItem("ev_user",JSON.stringify(u));}catch(e){}},
+  clear(){try{localStorage.removeItem("ev_token");localStorage.removeItem("ev_user");}catch(e){}}
+};
+let authMode="signin",authAfter=null;
+function authHeaders(){return EVAUTH.token?{Authorization:"Bearer "+EVAUTH.token}:{};}
+function escH(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function renderAuthUI(){const b=document.getElementById("auth-btn"),u=EVAUTH.user;if(!b)return;b.textContent=u?"👤 "+String(u.name||u.email).split(" ")[0].slice(0,12):"Sign in";}
+function authBtnClick(){if(EVAUTH.user)switchPage("orders");else openAuth("signin");}
+function openAuth(mode,after){authAfter=after||null;setAuthMode(mode||"signin");document.getElementById("auth-err").textContent="";const m=document.getElementById("auth-modal");m.classList.remove("hidden");m.classList.add("flex");m.style.display="flex";setTimeout(function(){document.getElementById("auth-email").focus();},50);}
+function closeAuth(){const m=document.getElementById("auth-modal");m.classList.add("hidden");m.classList.remove("flex");m.style.display="none";authAfter=null;}
+function setAuthMode(m){authMode=m;const up=m==="signup";
+  document.getElementById("auth-title").textContent=up?"Create account":"Sign in";
+  document.getElementById("auth-submit").textContent=up?"Create account →":"Sign in →";
+  document.getElementById("auth-name").style.display=up?"block":"none";
+  document.getElementById("auth-pass").autocomplete=up?"new-password":"current-password";
+  [["tab-signin",!up],["tab-signup",up]].forEach(function(x){const e=document.getElementById(x[0]);e.style.background=x[1]?"#4F46E5":"transparent";e.style.color=x[1]?"#fff":"#5B6478";});}
+async function submitAuth(e){
+  e.preventDefault();const err=document.getElementById("auth-err"),btn=document.getElementById("auth-submit");err.textContent="";
+  const name=document.getElementById("auth-name").value.trim(),email=document.getElementById("auth-email").value.trim().toLowerCase(),password=document.getElementById("auth-pass").value;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){err.textContent="Enter a valid email.";return;}
+  if(password.length<8){err.textContent="Password must be at least 8 characters.";return;}
+  if(authMode==="signup"&&name.length<2){err.textContent="Enter your name.";return;}
+  btn.disabled=true;const old=btn.textContent;btn.textContent="Please wait…";
+  try{
+    const r=await fetch(API_BASE_URL+"/api/auth/"+authMode,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,email,password})});
+    const d=await r.json().catch(function(){return{};});
+    if(!r.ok)throw new Error(d.error||"Something went wrong. Try again.");
+    EVAUTH.set(d.token,d.user);renderAuthUI();const next=authAfter;closeAuth();showToast("Welcome, "+String(d.user.name||d.user.email).split(" ")[0]+" ✓");
+    document.getElementById("auth-pass").value="";if(next)setTimeout(next,250);
+  }catch(ex){err.textContent=ex.message||"Network error.";}
+  finally{btn.disabled=false;btn.textContent=old;}
+}
+function signOut(){EVAUTH.clear();renderAuthUI();switchPage("home");showToast("Signed out");}
+function prefillCheckout(){const u=EVAUTH.user;if(!u)return;const n=document.getElementById("pay-name"),m=document.getElementById("pay-email");if(n&&!n.value)n.value=u.name||"";if(m&&!m.value)m.value=u.email||"";}
+async function loadOrders(silent){
+  const list=document.getElementById("orders-list"),who=document.getElementById("orders-who"),u=EVAUTH.user;if(!list)return;
+  if(!u){who.textContent="";list.innerHTML='<div class="pcb-card p-10 text-center text-sm text-[#5B6478]">Sign in to see your orders. <button type="button" onclick="openAuth(\'signin\')" class="font-bold text-[#4F46E5] underline">Sign in</button></div>';return;}
+  who.textContent=u.email;if(!silent)list.innerHTML='<div class="py-10 text-center text-sm text-[#5B6478]">Loading your orders…</div>';
+  try{
+    const r=await fetch(API_BASE_URL+"/api/my-orders",{headers:authHeaders(),cache:"no-store"});
+    if(r.status===401){EVAUTH.clear();renderAuthUI();loadOrders();showToast("Session expired — sign in again");return;}
+    const d=await r.json();if(!r.ok)throw new Error(d.error||"Could not load orders.");
+    const orders=d.orders||[];
+    if(!orders.length){list.innerHTML='<div class="pcb-card p-10 text-center text-sm text-[#5B6478]">No orders yet. <button type="button" onclick="switchPage(\'projects\')" class="font-bold text-[#4F46E5] underline">Browse projects</button></div>';return;}
+    const st={paid:["Paid","#0E9F7E"],created:["Awaiting payment","#D97706"],failed:["Failed","#DC2626"]};
+    list.innerHTML=orders.map(function(o){
+      const s=st[o.status]||[String(o.status||"Pending"),"#5B6478"];
+      const items=(o.items||[]).map(function(i){const f=typeof findItemById==="function"?findItemById(i.id):null;return '<li class="flex justify-between gap-3"><span>'+escH(f?f.title:(i.title||i.id))+'</span><span class="mono text-[#5B6478]">× '+escH(i.qty)+'</span></li>';}).join("");
+      return '<div class="pcb-card p-5"><div class="flex flex-wrap items-center justify-between gap-2"><div><span class="mono text-xs font-bold text-[#0F172A]">'+escH(o.ref)+'</span><span class="mono ml-3 text-[11px] text-[#5B6478]">'+escH(new Date(o.ts).toLocaleString())+'</span></div><span class="mono rounded px-2 py-0.5 text-[11px] font-bold text-white" style="background:'+s[1]+'">'+escH(s[0])+'</span></div><ul class="mt-3 space-y-1 text-sm text-[#0F172A]">'+items+'</ul><div class="mt-3 flex justify-between border-t border-[#E6E9F2] pt-3"><span class="mono text-xs font-bold uppercase text-[#5B6478]">Total</span><span class="mono text-base font-bold text-[#4F46E5]">'+money((o.amount||0)/100)+'</span></div></div>';
+    }).join("");
+  }catch(ex){list.innerHTML='<div class="pcb-card p-8 text-center text-sm text-[#DC2626]">'+escH(ex.message||"Could not load orders.")+'</div>';}
+}
+renderAuthUI();
 </script>
 </body>
 </html>
